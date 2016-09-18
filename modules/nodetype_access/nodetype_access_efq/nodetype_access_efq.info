@@ -1,0 +1,12 @@
+name = Nodetype access EFQ
+description = Provides view permissions per nodetype for EFQ queries.
+package = Access control
+core = 7.x
+dependencies[] = nodetype_access
+
+; Information added by drupal.org packaging script on 2012-09-20
+version = "7.x-1.0-beta5"
+core = "7.x"
+project = "nodetype_access"
+datestamp = "1348101871"
+

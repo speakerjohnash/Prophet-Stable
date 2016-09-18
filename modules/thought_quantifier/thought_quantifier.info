@@ -1,0 +1,6 @@
+name = Thought Quantifier
+core = 7.x
+description = Sub-module for tokenizing, counting and quantifying thought on Prophet
+dependencies[] = prophet
+dependencies[] = thought
+

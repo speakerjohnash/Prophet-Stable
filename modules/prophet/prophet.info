@@ -1,0 +1,3 @@
+name = Prophet
+core = 7.x
+description = Main module for all things Prophet related.

@@ -1,0 +1,48 @@
+<?php
+function thought_quantifier_schema() {
+	$schema['word_counts'] = array(
+		'description' => t('A table to store word counts for visualization with the thought stream'),
+		'fields' => array(
+			'uid' => array(
+				'description' => 'A foreign key referencing uid',
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+				'default' => 0
+			),
+			'count' => array(
+				'description' => 'The count of the word for that day',
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+				'default' => 0
+			),
+			'word' => array(
+				'description' => 'The word being counted',
+				'type' => 'varchar',
+				'length' => 32,
+				'not null' => TRUE,
+				'default' => ''
+			),
+			'date' => array(
+				'description' => 'The date of the word being stored',
+				'mysql_type' => 'DATE',
+				'not null' => TRUE
+			)
+		),
+		'indexes' => array(
+			'uid' => array('uid'),
+			'word' => array('word'),
+			'word' => array('date')
+		),
+		'foreign keys' => array(
+			'uid' => array(
+				'table' => 'users',
+				'columns' => array('uid' => 'uid')
+			)
+		),
+		'primary key' => array('uid', 'word', 'date')
+	);
+	return $schema;
+}
+?>

@@ -1,0 +1,204 @@
+<?php
+
+/**
+* Implements hook_block_info().
+*/
+
+function thought_block_info() {
+
+  $blocks = array();
+
+  $blocks['thought_block'] = array(
+    'info' => t('Log a Thought'),
+    'cache' => DRUPAL_CACHE_GLOBAL,
+  );
+
+  return $blocks;
+
+}
+
+/**
+* Implements hook_block_view().
+*/
+
+function thought_block_view($delta = '') {
+
+  $block = array();
+
+  switch ($delta) {
+    case 'thought_block':
+      $block['subject'] = '';
+      $block['content'] = drupal_get_form('thought_form');
+      break;
+  }
+
+  return $block;
+
+}
+
+/**
+ * Define the form to be returned.
+ */
+
+function thought_form($form, &$form_state) {
+	
+	# Create Form
+	$form['thought'] = array(
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#maxlength' => 200,
+    //'#title' => t("Prediction")
+  );
+
+  # Turn off autocomplete to protect private information
+  $form['thought']['#attributes']['autocomplete'] = 'off';
+
+  # State Button
+  $form['state'] = array(
+    '#type' => 'submit',
+    '#value' => t('State'),
+    '#access' => variable_get('node_preview_branschguiden', DRUPAL_OPTIONAL) != DRUPAL_REQUIRED || (!form_get_errors() && isset($form_state['node_preview'])),
+    '#submit' => array('thought_form_submit'),
+  );
+
+  # Ask Button
+  $form['ask'] = array(
+    '#type' => 'submit',
+    '#value' => t('Ask'),
+    '#access' => variable_get('node_preview_branschguiden', DRUPAL_OPTIONAL) != DRUPAL_REQUIRED || (!form_get_errors() && isset($form_state['node_preview'])),
+    '#submit' => array('thought_form_submit'),
+  );
+
+  # Ask Button
+  $form['reflect'] = array(
+    '#type' => 'submit',
+    '#value' => t('Reflect'),
+    '#access' => variable_get('node_preview_branschguiden', DRUPAL_OPTIONAL) != DRUPAL_REQUIRED || (!form_get_errors() && isset($form_state['node_preview'])),
+    '#submit' => array('thought_form_submit'),
+  );
+ 
+ 	# Predict Button
+  $form['predict'] = array(
+    '#type' => 'submit',
+    '#value' => t('Predict'),
+    '#access' => variable_get('node_preview_branschguiden', DRUPAL_OPTIONAL) != DRUPAL_REQUIRED || (!form_get_errors() && isset($form_state['node_preview'])),
+    '#submit' => array('thought_form_submit'),
+  );
+
+  # Enable Privacy Settings
+  $form['private'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Private'),
+    '#default_value' => isset($form['#node']->private) ? $form['#node']->private : FALSE,
+  );
+  
+  return $form;
+  
+}
+
+/**
+ * Validate the prediction
+ */
+
+function thought_form_validate($form, &$form_state) {
+
+}
+
+/**
+ * Save the new thought
+ */
+
+function thought_form_submit($form, &$form_state) {
+
+  # Save Node
+  global $user;
+	$triggering_element = $form_state['triggering_element']['#value'];
+	$node = new StdClass();
+	$node->type = 'thought';
+	$node->status = TRUE;
+	$node->promote = TRUE;
+	$node->title = $form_state['values']['thought'];
+  $node->private = $form_state['values']['private'];
+  $node->language = LANGUAGE_NONE;
+  $node->uid = $user->uid;
+  $node->field_private[$node->language][0]['value'] = $form_state['values']['private'];
+	$node->field_type[$node->language][] = array('value' => $triggering_element);
+	#$node->date = $form_state['values']['date'];
+	node_object_prepare($node);
+	node_save($node);
+	
+	# Callback to User
+	user_post_callback($triggering_element, $node);
+
+}
+
+/**
+ * Reflect a thought back at user
+ * that describes action taken
+ */
+
+function user_post_callback($button, $node) {
+	
+	if (!$node->private) {
+		$messages = array(
+			'State' => t('A mind speaks'),
+			'Predict' => t('A mind dreams'),
+			'Ask' => t('A mind seeks'),
+			'Reflect' => t('A mind reflects'),
+		);
+	} else {
+		$messages = array(
+			'State' => t('A mind mutters in whispers'),
+			'Predict' => t('A mind sees a hidden future'),
+			'Ask' => t('A mind seeks truth from within'),
+			'Reflect' => t('A mind reflects upon inner truths'),
+		);
+	}	
+	
+	drupal_set_message($messages[$button]);
+	
+}
+
+/**
+ * Implements hook_node_grants
+ */
+
+function thought_node_grants($account, $op) {
+
+  # Allow author to view own content
+  $grants['thought_author'] = array($account->uid);
+
+  return $grants;
+
+}
+
+/**
+ * Implements hook_node_access_records
+ */
+
+function thought_node_access_records($node) {
+
+  # If private is selected
+  if (!empty($node->private)) {
+    
+    $grants = array();
+
+    # Allow author access to private content
+    $grants[] = array(
+      'realm' => 'thought_author',
+      'gid' => $node->uid,
+      'grant_view' => 1,
+      'grant_update' => 0,
+      'grant_delete' => 0,
+      'priority' => 0,
+    );
+
+    return $grants;
+
+  }
+
+}
+
+function thought_form_thought_node_form_alter(&$form, &$form_state) {
+  $form['title']['#maxlength'] = 200;
+}

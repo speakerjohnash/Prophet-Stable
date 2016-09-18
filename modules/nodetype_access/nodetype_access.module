@@ -1,0 +1,146 @@
+<?php
+
+/**
+ * @file
+ * A new, different kind of node access module made possible by Drupal 7.
+ *
+ * This module completely bypasses the node access grants system, and instead
+ * uses hook_node_access() and hook_query_alter() to prevent users without
+ * proper permissions from viewing nodes.
+ */
+
+/**
+ * Implements hook_permission().
+ *
+ * Defines a 'view any $type content' permission. I guess I could've had it
+ * also define a 'view own $type content' permission, but I'm lazy, and Drupal
+ * defaults to letting you view your own content anyway...
+ */
+function nodetype_access_permission() {
+  $perms = array();
+
+  foreach (node_permissions_get_configured_types() as $type) {
+    $info = node_type_get_type($type);
+
+    $perms += array(
+      nodetype_access_get_permission($type) => array(
+        'title' => t('View any %type_name content', array('%type_name' => $info->name)),
+      ),
+    );
+  }
+
+  return $perms;
+}
+
+/**
+ * Get permission (sanitized) for a single type
+ */
+function nodetype_access_get_permission($nodetype) {
+  $nodetype = check_plain($nodetype);
+  return "view any $nodetype content";
+}
+
+/**
+ * Get all permissions (sanitized) keyed by nodetype
+ */
+function nodetype_access_get_permissions() {
+  $permission_keys = &drupal_static(__FUNCTION__);
+  if(!isset($permission_keys)) {
+    foreach(node_type_get_types() as $nodetype => $info) {
+      $nodetype = check_plain($nodetype);
+      $permission_keys[$nodetype] = nodetype_access_get_permission($nodetype);
+    }
+  }
+  return $permission_keys;
+}
+
+/**
+ * Implement hook_node_access().
+ *
+ * This will deny access to nodes accessed via node/X, or otherwise having a
+ * full node_load() done on them.
+ */
+function nodetype_access_node_access($node, $op, $account) {
+  if ($op == 'view') {
+    if (user_access(nodetype_access_get_permission($node->type), $account)) {
+      return NODE_ACCESS_ALLOW;
+    }
+    else {
+      return NODE_ACCESS_DENY;
+    }
+  }
+}
+
+/**
+ * Implement hook_query_TAG_alter().
+ *
+ * This takes care of nodes in listing pages, sidebar blocks, and so on. These
+ * do not trigger the full set of hook_node_XXX functions, for performance
+ * reasons.
+ */
+function nodetype_access_query_node_access_alter(QueryAlterableInterface $query) {
+  // If we haven't joined on the node table yet, do so.
+  $tables = $query->getTables();
+  $node_exists = FALSE;
+  foreach ($tables as $alias => $table) {
+    if ($table['table'] == 'node') {
+      $node_exists = TRUE;
+      break;
+    }
+  }
+  // $alias is the alias of the node table if $node_exists
+  // otherwise it is the index of the last table
+
+  if (!$node_exists) {
+    // Assume the primary table has a 'nid' column. Not a safe assumption, but
+    // it stops Comment module from freaking out.
+    // TODO: write tests for this
+    $query->join('node', 'n', 'n.nid = ' . key($tables) . '.nid');
+    $alias = 'n';
+  }
+
+  // Restrict to showing only what types the user has access to view.
+  $types = nodetype_access_get_accessible_types();
+  if($types) {
+    // only filter if necessary
+    if($types != nodetype_access_get_all_types()) {
+      // $alias is not a value so a placeholder might not do the right thing
+      // but we should sanitize it anyway i think
+      $query->where(check_plain($alias) . '.type IN (:types)', array(':types' => $types));
+    }
+  } else {
+    // '1=0' evaluates to a boolean on postgresql as well as on mysql
+    // Using just '0' wont work on postgresql, and using 'true' might cause issues
+    // on mysql
+    $query->where('0=1');
+  }
+}
+
+/**
+ * Returns the list of node types that a user can access.
+ *
+ * TODO: do we really want the db_query in here?
+ */
+function nodetype_access_get_accessible_types() {
+  global $user;
+  $accessible_types = &drupal_static(__FUNCTION__);
+  if (!isset($accessible_types)) {
+    // Those with 'bypass node access' permissions get to see everything.
+    if (user_access('bypass node access')) {
+      $accessible_types = array_keys(node_type_get_types());
+    }
+    else {
+      $user_permissions = array_keys(drupal_array_merge_deep_array(user_role_permissions($user->roles)));
+      $nodetype_permissions = nodetype_access_get_permissions();
+      $accessible_types = array_keys(array_intersect($nodetype_permissions, $user_permissions));
+    }
+  }
+  return $accessible_types;
+}
+
+/**
+ * Returns the list of all node types.
+ */
+function nodetype_access_get_all_types() {
+  return array_keys(node_type_get_types());
+}

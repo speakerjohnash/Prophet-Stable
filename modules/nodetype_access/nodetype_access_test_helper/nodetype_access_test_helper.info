@@ -1,0 +1,13 @@
+name = Nodetype access Test Helper
+description = Provides a node list using efq at nodetype_access_test_helper_efq_node_listing. You shold NEVER enable this unless you are a test bot.
+dependencies[] = nodetype_access_efq
+package = Testing
+core = 7.x
+hidden = true
+
+; Information added by drupal.org packaging script on 2012-09-20
+version = "7.x-1.0-beta5"
+core = "7.x"
+project = "nodetype_access"
+datestamp = "1348101871"
+

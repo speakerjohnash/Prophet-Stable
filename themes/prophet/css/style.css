@@ -1,0 +1,410 @@
+/**
+ * This file should get overwritten if Method 1 is used. If Method 2 is chosen,
+ * remove this comment and start adding your styles to this file.
+ */
+
+@import url(http://fonts.googleapis.com/css?family=Quicksand:400,700);
+
+/* New Front Page Design */
+
+.rate-widget-2 li.last {
+	/* display: none; */
+	opacity: 0.2;
+	height: 0px;
+	overflow: visible;
+	transition: opacity .2s;
+}
+
+.rate-widget-2 li.last:hover{
+	opacity: 0.8;
+}
+
+.thought-content .rate-widget {
+	padding-top: 2px;
+}
+
+.front #block-thought-thought-block {
+	margin: 60px auto;
+	width: 450px;
+	margin-bottom: 35px;
+}
+
+.front h1.page-header {
+  display: none;
+}
+
+#block-views-bubble-stream-block .view-Bubble-Stream {
+	font-family: 'Quicksand', sans-serif;
+}
+
+.front .view-Bubble-Stream .views-field-title {
+	font-size: 22px;
+}
+
+.front #block-views-bubble-stream-block {
+	width: 655px;
+	margin: 0 auto;
+}
+
+.front .view-notification-stream {
+	padding-left: 55px;
+	background-image: url("./2x2_black.gif");
+	background-repeat: repeat-y;
+	background-position: 20px 0px;
+}
+
+.front .region-content h2 {
+	margin-top: 10px;
+	font-size: 27px;
+}
+
+.view-Bubble-Stream .view-filters {
+	width: 190px;
+	margin-left: 20px;
+	border-left: solid 2px black;
+	border-top: solid 2px black;
+	height: 175px;
+	border-top-left-radius: 35px;
+}
+
+.tooltip {
+	display: none !important;
+}
+
+#edit-uid-wrapper {
+	position: relative;
+	top: -85px;
+	left: 35px;
+}
+
+#edit-created-wrapper {
+	display: none;
+}
+
+#edit-title-wrapper {
+	display: none;
+}
+
+#views-exposed-form-Bubble-Stream-block .views-submit-button {
+	position: relative;
+	top: -75px;
+	left: 35px;
+}
+
+/* Thought Bubbles */
+a.logo img {
+	display: none;
+}
+
+.thought-bubble .private {
+	background-image: url('private.png');
+	background-position: center;
+	background-size: 33px;
+	background-repeat: no-repeat;
+}
+
+.navbar a.logo {
+	height: 30px;
+	width: 30px;
+	display: block;
+	border-radius: 100px;
+	margin-right: 11px;
+	margin-top: 10px;
+}
+
+.navbar.container {
+	max-width: 100%;
+	width: 100%;
+	margin: 0 0 25px 0;
+}
+
+.color-state {
+	background: #428bca;
+}
+
+.color-ask {
+	background: #5cb85c;
+}
+
+.color-predict {
+	background: #5a4e8c;
+}
+
+.color-reflect {
+	background: #A33333;
+}
+
+.color-thought {
+	background: rgb(215, 216, 218);
+}
+
+.thought-bubble div {
+	height: 40px;
+	width: 40px;
+	border-radius: 100px;
+	margin: 15px;
+	margin-left: 0px;
+}
+
+.thought-bubble, .thought-content {
+	float: left;
+	background: white;
+}
+
+.thought-content .views-field-title {
+	max-width: 600px;
+	min-width: 320px;
+	margin: 7px 0;
+}
+
+.thought-content .views-label {
+	font-size: 13px;
+}
+
+.thought-content .views-field-name {
+	float: left;
+	margin-left: 65px;
+	font-size: 20px;
+	line-height: 15px;
+	margin-top: 20px;
+}
+
+.thought-content .views-field-title {
+	margin-bottom: 10px;
+}
+
+.thought-content.ask .views-field-name {
+	margin-left: 240px;
+}
+
+.thought-content .views-field-value-1 {
+	margin-right: 15px;
+}
+
+.thought-content .views-field-value, 
+.thought-content .views-field-value-1 {
+	float: left;	
+}
+
+#block-views-bubble-stream-block {
+	width: 655px;
+	margin: 0 auto;
+}
+
+#block-views-bubble-stream-block .form-control.form-select {
+	height: auto;
+}
+
+#block-views-bubble-stream-block .views-row {
+	margin-bottom: 15px;
+}
+
+#block-views-bubble-stream-block .view-content {
+	 background-image: url("./2x2_black.gif");
+	 background-repeat: repeat-y;
+	 background-position: 20px 0px;
+}
+
+#block-views-bubble-stream-block .views-field-title a {
+	color: #222;
+}
+
+#block-views-bubble-stream-block div.rate-widget-2 ul li {
+	/* float: left; */
+	margin-right: 10px;
+}
+
+#block-views-bubble-stream-block div.rate-widget-2 ul {
+	margin-bottom: 0;
+}
+
+#block-views-bubble-stream-block .rate-widget-fivestar ul {
+	padding-left: 0px;
+}
+
+#block-views-bubble-stream-block .block-title {
+	width: 200px;
+	margin: 0 auto;
+	text-align: center;
+	overflow: visible;
+	height: 25px;
+}
+
+/* Misc */
+
+#navbar {
+	font-family: 'Quicksand', sans-serif;
+}
+
+a:visited {
+	color: rgb(117, 108, 122);	
+}
+
+.form-item-private {
+	font-family: 'Quicksand', sans-serif;
+}
+
+.rate-widget-fivestar .rate-fivestar-btn-empty {
+	border-radius: 15px;
+	margin-right: 2px;
+	background: #f2f2f2;
+}
+
+.rate-widget-fivestar .rate-fivestar-btn-filled {
+	border-radius: 15px;
+	margin-right: 2px;
+	background: #f1e886;
+}
+
+.form-item-thought-type {
+	font-family: 'Quicksand', sans-serif;
+}
+
+.navbar-brand {
+	font-size: 25px;
+}
+
+.btn-ask {
+	color: #fff;
+	background-color: #585A5A;
+	border-color: #585A5A;
+}
+
+.btn-ask:hover {
+	color: #fff;
+	background-color: #474747;
+	border-color: #474747;
+}
+
+.btn-predict {
+	color: #fff;
+	background-color: #5a4e8c;
+	border-color: #5a4e8c;
+}
+
+.btn-predict:hover {
+	color: #fff;
+	background-color: #50457b;	
+	border-color: #50457b;
+}
+
+.btn-reflect {
+	color: #fff;
+	background-color: #A33333;
+	border-color: #A33333;
+}
+
+.btn-reflect:hover {
+	color: #fff;
+	background-color: #8E2B2B;	
+	border-color: #8E2B2B;
+}
+
+.btn {
+	font-family: 'Quicksand', sans-serif;
+}
+
+.rate-widget-2 .rate-button {
+	width: 20px;	
+	height: 20px;
+	border-radius: 100px;
+	padding-left: 4px;
+}
+
+.rate-widget-2 ul {
+	padding-left: 5px;
+}
+
+.rate-widget-2 li.first {
+	padding-bottom: 4px;
+}
+
+.rate-widget-2 li.last a {
+	padding-left: 6px;
+	background: #C7C7C7;
+}
+
+div.rate-widget-2 ul li {
+	float: none;
+	height: 27px;
+}
+
+.views-exposed-form .views-exposed-widget button.form-submit {
+	margin-top: 0px;
+}
+
+.front h1.page-header {
+  display: none;
+}
+
+h1, h2, h3, th {
+	font-family: 'Quicksand', sans-serif;
+}
+
+nav {
+	font-size: 16px;
+}
+
+/* Callback Boxes */
+
+.alert-block.alert-success {
+	/*max-width: 275px;*/
+	margin: 0 auto;
+	text-align: center;
+	/*text-transform: capitalize;*/
+	font-family: Quicksand;
+	font-size: 15px;
+	border-radius: 12px;
+	background-color: #F8F8F8;
+	color: #777;
+	border: none;
+}
+
+/* Type Filter */
+
+.front #edit-thought-type-wrapper {
+	background: white;
+	padding: 10px;
+	position: relative;
+	top: -65px;
+	margin: 10px;
+	left: 15px;
+}
+
+/*
+
+#edit-thought-type-wrapper option {
+	display: block;
+	height: 35px;
+	width: 35px;
+	overflow: hidden;
+	float: left;
+	text-indent: -9999px;
+	border-radius: 50px;
+	border: solid 4px #D4D4D4;
+	margin: 3px;
+}
+
+#edit-thought-type-wrapper option[value="Predict"][selected] {
+	background: #5a4e8c;
+}
+
+#edit-thought-type-wrapper option[value="Reflect"] {
+	background: #A33333;
+}
+
+#edit-thought-type-wrapper option[value="Ask"] {
+	background: #5cb85c;
+}
+
+#edit-thought-type-wrapper option[value="State"] {
+	background: #428bca;
+}
+
+*/
+
+/* Mobile */
+
+@media screen and (max-width: 768px) {
+    
+}

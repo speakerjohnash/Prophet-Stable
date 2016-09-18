@@ -1,0 +1,16 @@
+<?php
+/**
+ * @file
+ * Installation and uninstallation functions.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function node_comment_block_uninstall() {
+  // Delete created variables.
+  variable_del('node_comment_block_show_form_node_comments');
+  variable_del('node_comment_block_show_comments_node_comments');
+  variable_del('node_comment_block_show_form_node_comments_secondary');
+  variable_del('node_comment_block_show_comments_node_comments_secondary');
+}

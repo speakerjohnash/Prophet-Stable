@@ -1,0 +1,28 @@
+<?php
+
+/**
+* Implements hook_votingapi_insert().
+*/
+
+function prophet_votingapi_insert($vote) {
+
+	$type = $vote[0]['value_type'];	
+	$value = $vote[0]['value'];
+	$messages = array(
+		'10' => t('One: The mind contradicts'),
+		'20' => t('Two: The mind dissents'),
+		'30' => t('Three: The mind disagrees'),
+		'40' => t('Four: The mind doubts'),
+		'50' => t('Five: The mind pauses'),
+		'60' => t('Six: The mind sways'),
+		'70' => t('Seven: The mind approaches'),
+		'80' => t('Eight: The mind recognizes'),
+		'90' => t('Nine: The mind sees'),
+		'100' => t('Ten: The mind knows'),
+	);
+	
+	if ($type == "percent") {
+		drupal_set_message($messages[$value]);
+	}	
+
+}

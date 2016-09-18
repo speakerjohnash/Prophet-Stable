@@ -1,0 +1,66 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function nodetype_access_test_helper_menu() {
+  $items = array();
+  $items['nodetype_access_test_helper_efq_node_listing'] = array(
+    'title' => t('EFQ node listing'),
+    'description' => 'A node listung using EFQ.',
+    'page callback' => 'nodetype_access_test_efq_nodelist',
+    'type' => MENU_NORMAL_ITEM,
+    'access callback' => 1,
+  );
+  return $items;
+}
+
+/*
+ * Page callback.
+ */
+function nodetype_access_test_efq_nodelist() {
+  $build = array();
+
+  // build and execute the EFQ
+  $query = new EntityFieldQuery();
+  $query = $query
+    ->entityCondition('entity_type', 'node')
+    ->addTag('node_access');
+    ;
+  $result = $query
+    ->execute();
+
+  // get nodetypes that the efq listed, suppress errors
+  $column = $operator = $value = '';
+  if(isset($query->entityConditions['bundle'])) {
+    $bundle_condition = $query->entityConditions['bundle'];
+    $column = 'bundle';
+    $operator = $bundle_condition['operator'];
+    $value = $bundle_condition['value'];
+    if(!$operator) {
+      $operator = '=';
+    }
+    if(is_array($value)) {
+      $value = implode(',', $value);
+      $value = "($value)";
+    } else {
+      // we just believe it's a string
+      $value = "'$value'";
+    }
+  }
+  $nodetypes = @$query->entityConditions['bundle']['value'];
+  @sort($nodetypes);
+  $nodetypes_list = is_array($nodetypes)?'[' . implode('][', (array)$nodetypes) . '].':'';
+  $build['nodetypes']['#markup'] = "Condition: $column $operator $value;";
+
+  // if we got some results
+  if(isset($result['node'])) {
+    // load nodes
+    $nids = array_keys($result['node']);
+    $nodes = node_load_multiple($nids);
+
+    // render nodes and prepend nodetype info
+    $build += node_view_multiple($nodes);
+  }
+  return $build;
+}

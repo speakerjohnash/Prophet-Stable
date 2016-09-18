@@ -1,0 +1,310 @@
+<?php
+
+/**
+* Implements hook_cron()
+*/
+
+function thought_quantifier_cron() {
+
+	$cron_last = variable_get('cron_last');
+
+  // Load thoughts and process through Prophet Mind
+	if (date('ymd', $cron_last) != date('ymd', time())) {
+    wordstream_process();
+		variable_set('cron_last', date('ymd', time()));
+	}
+   
+}
+
+/**
+* Implements hook_block_info()
+*/
+
+function thought_quantifier_block_info() {
+
+  $blocks = array();
+
+  $blocks['thought_quantifier_block'] = array(
+    'info' => t('Temporary block to debug and build thought quantification'),
+    'cache' => DRUPAL_CACHE_GLOBAL
+  );
+
+  $blocks['word_stream_block'] = array(
+    'info' => t('Word Stream'),
+    'cache' => DRUPAL_CACHE_GLOBAL,
+    'region' => 'Content',
+    'visibility' => 1,
+    'pages' => 'wordstream'
+  );
+
+  return $blocks;
+
+}
+
+/**
+ * Implements hook_menu()
+ */
+
+function thought_quantifier_menu() {
+  $items['wordstream'] = array(
+    'type' => MENU_CALLBACK,
+    'page callback' => 'theme_wordstream_page',
+    'access arguments' => array('access content'),
+  );
+  return $items;
+}
+
+/**
+ * Returns Markup for Page
+ */
+
+function theme_wordstream_page() {
+  return theme('thought_quantifier_wordstream');
+}
+
+/**
+ * Implements hook_theme.
+ */
+
+function thought_quantifier_theme($existing, $type, $theme, $path) {
+  return array(
+    'thought_quantifier_wordstream' => array(
+      'template' => 'thought_quantifier_wordstream'
+    ),
+  );
+}
+
+/**
+ * Implements hook_preprocess_page.
+ */
+
+function thought_quantifier_preprocess_page(&$variables, $hook) {
+  if($_GET['q'] == 'wordstream') {
+    $variables['theme_hook_suggestions'][] = 'thought_quantifier_wordstream';
+  }
+}
+
+/**
+* Implements hook_block_view().
+*/
+
+function thought_quantifier_block_view($delta = '') {
+
+  $block = array();
+  $m_path = drupal_get_path('module', 'thought_quantifier');
+
+  switch ($delta) {
+    case 'thought_quantifier_block':
+      $block['subject'] = '';
+      $block['content'] = drupal_get_form('thought_quantifier_form');
+      break;
+    case 'word_stream_block':
+      $block['subject'] = '';
+      $block['content'] = [
+        '#markup' => load_wordstream_markup(),
+        '#attached' => [
+          'js' => [
+            'http://d3js.org/d3.v2.js',
+            $m_path . '/UI/wordStream/bootstrap-multiselect.js',
+            $m_path . '/UI/wordStream/script.js'
+          ],
+          'css' => [
+            $m_path . '/UI/wordStream/styled.css',
+            $m_path . '/UI/wordStream/bootstrap-multiselect.css'
+          ]
+        ]
+      ];
+      break;
+  }
+
+  return $block;
+
+}
+
+/**
+* Load Word Stream Data and Produce Markup
+*/
+
+function load_wordstream_markup() {
+
+  global $user;
+
+  # Fetch Top Words and Max and Min Dates
+  $result = db_query('select word, sum(count) from word_counts where uid = ' . $user->uid . ' group by word order by sum(count) desc limit 100');
+  $top_words = array_keys($result->fetchAllAssoc('word'));
+
+  # Fetch Word Counts
+  $query = db_select('word_counts', 'w');
+  $query->condition('w.uid', $user->uid, '=')->fields('w', array('date', 'word', 'count'));
+
+  # Limit By Top Words
+  $db_or = db_or();
+
+  foreach ($top_words as $word) {
+    $db_or->condition('w.word', $word, '=');
+  }
+
+  $query->condition($db_or);
+  $result = $query->execute();
+  $formatted = [];
+
+  # Get Date Details
+  $max_min_dates = db_query('select max(date), min(date) from word_counts')->fetchAssoc();
+  $first_monday = strtotime('this week', strtotime($max_min_dates['min(date)']));
+  $last_monday = strtotime('this week', strtotime($max_min_dates['max(date)']));
+  $formatted_data = [];
+
+  # Create Structure to Hold Data
+  $daily_words = [];
+
+  foreach ($top_words as $word) {
+    $daily_words[$word] = "0";
+  }
+
+  for ($i = $first_monday; $i <= $last_monday; $i = strtotime('+1 week', $i)) {
+    $formatted_data[date('Y-m-d', $i)] = $daily_words;
+    $formatted_data[date('Y-m-d', $i)]['Post Date'] = date('m/d/Y', $i);
+  }
+
+  # Format Results for Word Stream
+  foreach ($result as $record) {
+    $fdow = date('Y-m-d', strtotime('this week', strtotime($record->date)));
+    $formatted_data[$fdow][$record->word] += $record->count;
+  }
+
+  # Convert to JSON
+  $json_data = json_encode(array_values($formatted_data));
+
+  # Build Markup
+  $chart = '<div class="chart"></div><script>var streamData=' . $json_data . '</script>';
+
+  return $chart;
+
+}
+
+/**
+* Implements hook_form_submit().
+*/
+
+function thought_quantifier_form_submit($form, &$form_state) {
+  wordstream_process();
+}
+
+/**
+ * Define the form to be returned.
+ */
+
+function thought_quantifier_form($form, &$form_state) {
+
+  # Submit Button
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Process Thoughts'),
+    '#submit' => array('thought_quantifier_form_submit'),
+  );
+  
+  return $form;
+  
+}
+
+/**
+ * Run code to make calls to Prophet Mind for the word stream
+ */
+
+function wordstream_process() {
+
+  # Get Thoughts from Database
+  $query = db_select('node', 'n');
+  $query->condition('n.type', 'thought', '=')->fields('n', array('title', 'uid', 'created'));
+  $query->condition('created', array(strtotime("yesterday 0:00"), strtotime("today 0:00")), 'BETWEEN');
+  $result = $query->execute();
+
+  # Prepare Results for Prophet Mind
+  $users = []; 
+
+  foreach ($result as $record) {
+
+    $date = date('Y-m-d', $record->created);
+
+    # Add User Object
+    if (empty($users[$record->uid])) $users[$record->uid] = ["days" => []];
+
+    # Add Day Object
+    if (empty($users[$record->uid]["days"][$date])) {
+      $users[$record->uid]["days"][$date] = ["date" => $date, "thoughts" => []];
+    }
+
+    # Add Thought
+    array_push($users[$record->uid]["days"][$date]["thoughts"], $record->title);
+
+  }
+
+  foreach ($users as $uid => $user) {
+
+    $day_array = [];
+
+    foreach ($user["days"] as $day) {
+      array_push($day_array, $day);
+    }
+
+    $user["days"] = $day_array;
+    $users[$uid] = $user;
+
+  }
+
+  # Process Thoughts
+  foreach ($users as $uid => $user) {
+
+    # Call Prophet Mind
+    $response = query_prophet_mind($user);
+
+    # Store Result In WordCount Table
+    store_wordcounts($response, $uid);
+
+  }
+
+}
+
+/**
+ * Save Word Counts to Database
+ */
+
+function store_wordcounts($wordcounts, $uid) {
+
+  foreach ($wordcounts->data->days as $day) {
+    foreach ($day->word_list as $word) {
+      $query = db_merge('word_counts');
+      $query->key(['uid' => $uid, 'word' => substr($word->word, 0, 32), 'date' => $day->date]);
+      $query->fields([
+        'count' => $word->count
+      ]);
+      $query->execute();
+    }
+  }
+
+}
+
+/**
+ * Query Prophet Mind
+ */
+
+function query_prophet_mind($user) {
+
+  # Send Thoughts to Prophet Mind  
+  $url = 'http://54.213.81.208:443/wordstream/';
+  $options = array(
+  'http' => array(
+    'method'  => 'POST',
+    'content' => json_encode($user),
+    'header'=>  "Content-Type: application/json\r\n" .
+                "Accept: application/json\r\n"
+    )
+  );
+
+  $context  = stream_context_create($options);
+  $result = file_get_contents($url, false, $context);
+  $response = json_decode($result);
+
+  return $response;
+
+}

@@ -1,0 +1,25 @@
+<?php
+
+/**
+* Implements hook_entity_query_alter()
+*
+* This alters any incoming EntityFieldQuery concerning nodes with 'node_access' tag.
+* In contrary to hook_query_TAG_alter() this should work also for nosql backends.
+*/
+function nodetype_access_efq_entity_query_alter(EntityFieldQuery $query) {
+  if(in_array('node_access', $query->tags)
+  ) {
+    $types = nodetype_access_get_accessible_types();
+    if($types) {
+      // only filter if necessary
+      if($types != nodetype_access_get_all_types()) {
+        $query->entityCondition('bundle', $types, 'in');
+      }
+    } else {
+      // workaround for http://drupal.org/node/1426702
+      // this should always be false
+      $query->entityCondition('bundle', '', '=');
+    }
+  }
+}
+

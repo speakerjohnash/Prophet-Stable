@@ -1,0 +1,133 @@
+<?php
+
+/**
+ * @file
+ * Tests for Nodetype access module.
+ */
+
+/**
+ * Tests for Nodetype access module.
+ */
+class NodetypeAccessTestCase extends DrupalWebTestCase {
+  protected $admin_user;
+  protected $power_user;
+  protected $peon_user;
+
+  protected $page;
+  protected $article;
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Access control',
+      'description' => 'Tests to ensure that node access is working.',
+      'group' => 'Nodetype access',
+    );
+  }
+
+  function setUp() {
+    parent::setUp('nodetype_access', 'nodetype_access_efq', 'nodetype_access_test_helper');
+
+    // Create admin, power, and peon users.
+    $this->admin_user = $this->drupalCreateUser(array('bypass node access'));
+    $this->power_user = $this->drupalCreateUser(array('view any article content'));
+    $this->peon_user  = $this->drupalCreateUser(array());
+
+    // Add a page and an article.
+    $this->page = $this->drupalCreateNode(array('type' => 'page', 'promote' => 1));
+    $this->article = $this->drupalCreateNode(array('type' => 'article', 'promote' => 1));
+  }
+
+  /**
+   * Ensure that nodes are properly protected when EFQs are run.
+   *
+   * TODO: convert to unit test as outlined in README.txt
+   */
+  function testEFQ() {
+    // Log in as admin user and view node listing page. They should see both
+    // nodes.
+    $this->drupalLogin($this->admin_user);
+    $this->drupalGet('nodetype_access_test_helper_efq_node_listing');
+    $this->assertText($this->article->title, 'Article was found for admin user.');
+    $this->assertText($this->page->title, 'Page was found for admin user.');
+    $this->assertText('Condition:   ;', 'EFQ bundle conditions set correctly for admin user.');
+
+    // Log in as power user and view node listing page. They should see only
+    // the article.
+    $this->drupalLogin($this->power_user);
+    $this->drupalGet('nodetype_access_test_helper_efq_node_listing');
+    $this->assertText($this->article->title, 'Article was found for power user.');
+    $this->assertNoText($this->page->title, 'Page was not found for power user.');
+    $this->assertText('Condition: bundle in (article);', 'EFQ bundle conditions set correctly for power user.');
+
+    // Log in as peon user and view node listing page. They should see neither
+    // node.
+    $this->drupalLogin($this->peon_user);
+    $this->drupalGet('nodetype_access_test_helper_efq_node_listing');
+    $this->assertNoText($this->article->title, 'Article was not found for peon user.');
+    $this->assertNoText($this->page->title, 'Page was not found for peon user.');
+    $this->assertText('Condition: bundle = \'\';', 'EFQ bundle conditions set correctly for peon user.');
+  }
+
+  /**
+   * Ensure that nodes are properly protected when viewed in listing pages.
+   */
+  function testNodeListingPage() {
+    // Make sure we find our nodes on the main node page
+    variable_set('default_nodes_main', 99999);
+
+    // Log in as admin user and view node listing page. They should see both
+    // nodes.
+    $this->drupalLogin($this->admin_user);
+    $this->drupalGet('node');
+    $this->assertText($this->article->title, 'Article was found for admin user.');
+    $this->assertText($this->page->title, 'Page was found for admin user.');
+
+    // Log in as power user and view node listing page. They should see only
+    // the article.
+    $this->drupalLogin($this->power_user);
+    $this->drupalGet('node');
+    $this->assertText($this->article->title, 'Article was found for power user.');
+    $this->assertNoText($this->page->title, 'Page was not found for power user.');
+
+    // Log in as peon user and view node listing page. They should see neither
+    // node.
+    $this->drupalLogin($this->peon_user);
+    $this->drupalGet('node');
+    $this->assertNoText($this->article->title, 'Article was not found for peon user.');
+    $this->assertNoText($this->page->title, 'Page was not found for peon user.');
+  }
+
+  /**
+   * Ensure that nodes are properly protected when viewed directly.
+   */
+  function testDirectNodeAccess() {
+    $article_nid = $this->article->nid;
+    $page_nid = $this->page->nid;
+
+    // Log in as admin user and go to article and page nodes directly. They
+    // should be allowed.
+    $this->drupalLogin($this->admin_user);
+    $this->drupalGet("node/$article_nid");
+    $this->assertResponse(200, 'Direct article access is allowed for admin user.');
+    $this->drupalGet("node/$page_nid");
+    $this->assertResponse(200, 'Direct page access is allowed for admin user.');
+
+    // Log in as power user and go to article and page nodes directly. They
+    // should be allowed to see article, but not page.
+    $this->drupalLogin($this->power_user);
+    $this->drupalGet("node/$article_nid");
+    $this->assertResponse(200, 'Direct article access is allowed for power user.');
+    $this->drupalGet("node/$page_nid");
+    $this->assertResponse(403, 'Direct page access is denied for power user.');
+
+    // Log in as peon user and go to article and page nodes directly. They
+    // should not be allowed to see either.
+    $this->drupalLogin($this->peon_user);
+    $this->drupalGet("node/$article_nid");
+    $this->assertResponse(403, 'Direct article access is denied for peon user.');
+    $this->drupalGet("node/$page_nid");
+    $this->assertResponse(403, 'Direct page access is denied for peon user.');
+
+  }
+}
+

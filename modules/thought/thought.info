@@ -1,0 +1,4 @@
+name = Thought
+description = Provides all functionality related to logging a thought
+core = 7.x
+dependencies[] = prophet

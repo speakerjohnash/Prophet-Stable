@@ -7,15 +7,30 @@
 
 /* New Front Page Design */
 
+.rate-widget-2 li .rate-emotion-btn {
+	text-indent: -9999px;
+	border: none;
+}
+
+.rate-widget-2 ul:first-child .rate-emotion-btn{
+	background: url('./positive.png') rgb(237, 237, 237);
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: 10px;
+}
+
+.rate-widget-2 ul:last-child .rate-emotion-btn{
+	background: url('./negative.png') rgb(237, 237, 237);
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: 10px;
+}
+
 .rate-widget-2 li.last {
 	opacity: 0.2;
 	height: 0px;
 	overflow: visible;
 	transition: opacity .2s;
-}
-
-.rate-widget-2 li.last:hover{
-	opacity: 0.8;
 }
 
 .thought-content .rate-widget {

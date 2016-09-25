@@ -130,9 +130,20 @@ function load_wordstream_markup() {
 
   global $user;
 
+  # Get Max Date
+  $max_min_dates = db_query('select max(date), min(date) from word_counts where uid = ' . $user->uid)->fetchAssoc();
+
   # Fetch Top Words and Max and Min Dates
-  $result = db_query('select word, sum(count) from word_counts where uid = ' . $user->uid . ' group by word order by sum(count) desc limit 100');
+  $limit = 100;
+  $main_query = 'select word, sum(count) from word_counts ';
+  $where_condition = 'where uid = ' . $user->uid;
+  $groupby_and_orderby = ' group by word order by sum(count) desc limit ' . $limit;
+  $result = db_query($main_query . $where_condition . $groupby_and_orderby);
   $top_words = array_keys($result->fetchAllAssoc('word'));
+
+  if (count($top_words) < 1) {
+    return "<div class='no-thoughts'>You must log some thoughts before this visualization becomes available. This stream will update at midnight.</div>";
+  }
 
   # Fetch Word Counts
   $query = db_select('word_counts', 'w');
@@ -140,19 +151,18 @@ function load_wordstream_markup() {
 
   # Limit By Top Words
   $db_or = db_or();
-
   foreach ($top_words as $word) {
     $db_or->condition('w.word', $word, '=');
   }
 
   $query->condition($db_or);
+
   $result = $query->execute();
   $formatted = [];
 
   # Get Date Details
-  $max_min_dates = db_query('select max(date), min(date) from word_counts')->fetchAssoc();
-  $first_monday = strtotime('this week', strtotime($max_min_dates['min(date)']));
-  $last_monday = strtotime('this week', strtotime($max_min_dates['max(date)']));
+  $first_monday = strtotime('monday this week', strtotime($max_min_dates['min(date)']));
+  $last_monday = strtotime('monday this week', strtotime($max_min_dates['max(date)']));
   $formatted_data = [];
 
   # Create Structure to Hold Data
@@ -162,24 +172,34 @@ function load_wordstream_markup() {
     $daily_words[$word] = "0";
   }
 
-  for ($i = $first_monday; $i <= $last_monday; $i = strtotime('+1 week', $i)) {
-    $formatted_data[date('Y-m-d', $i)] = $daily_words;
-    $formatted_data[date('Y-m-d', $i)]['Post Date'] = date('m/d/Y', $i);
-  }
+  # Group by Week or by Day
+  $date_range = strtotime($max_min_dates['max(date)']) - strtotime($max_min_dates['min(date)']);
+  $days_in_data = floor($date_range/(60*60*24));
 
-  # Format Results for Word Stream
-  foreach ($result as $record) {
-    $fdow = date('Y-m-d', strtotime('this week', strtotime($record->date)));
-    $formatted_data[$fdow][$record->word] += $record->count;
-  }
+  if ($days_in_data < 60) {
+    for ($i = strtotime($max_min_dates['min(date)'] . " -1 day"); $i <= time(); $i = strtotime('+1 day', $i)) {
+      $formatted_data[date('Y-m-d', $i)] = $daily_words;
+      $formatted_data[date('Y-m-d', $i)]['Post Date'] = date('m/d/Y', $i);
+    }
+    foreach ($result as $record) {
+      $fdow = date('Y-m-d', strtotime($record->date));
+      $formatted_data[$fdow][$record->word] += $record->count;
+    }
+  } else {
+    for ($i = $first_monday; $i <= $last_monday; $i = strtotime('+1 week', $i)) {
+      $formatted_data[date('Y-m-d', $i)] = $daily_words;
+      $formatted_data[date('Y-m-d', $i)]['Post Date'] = date('m/d/Y', $i);
+    }
+    foreach ($result as $record) {
+      $fdow = date('Y-m-d', strtotime('monday this week', strtotime($record->date)));
+      $formatted_data[$fdow][$record->word] += $record->count;
+    }
+  }  
 
   # Convert to JSON
   $json_data = json_encode(array_values($formatted_data));
 
-  # Build Markup
-  $chart = '<div class="chart"></div><script>var streamData=' . $json_data . '</script>';
-
-  return $chart;
+  return '<div class="chart"></div><script>var streamData=' . $json_data . '</script>';
 
 }
 
@@ -188,7 +208,9 @@ function load_wordstream_markup() {
 */
 
 function thought_quantifier_form_submit($form, &$form_state) {
-  wordstream_process();
+  $result = fetch_todays_thoughts();
+  print_r($result);
+  wordstream_process($result);
 }
 
 /**
@@ -244,13 +266,7 @@ function fetch_todays_thoughts() {
  * Run code to make calls to Prophet Mind for the word stream
  */
 
-function wordstream_process() {
-
-  # Get Thoughts from Database
-  $query = db_select('node', 'n');
-  $query->condition('n.type', 'thought', '=')->fields('n', array('title', 'uid', 'created'));
-  $query->condition('created', array(strtotime("yesterday 0:00"), strtotime("today 0:00")), 'BETWEEN');
-  $result = $query->execute();
+function wordstream_process($result) {
 
   # Prepare Results for Prophet Mind
   $users = []; 

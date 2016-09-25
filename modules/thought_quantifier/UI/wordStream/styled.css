@@ -36,3 +36,12 @@ p {
   color: #777;
   font-size: 14px;
 }
+
+.no-thoughts {
+  width: 365px;
+  font-family: 'Quicksand', sans-serif;
+  color: #555;
+  font-size: 20px;
+  text-align: center;
+  margin: 100px auto;
+}

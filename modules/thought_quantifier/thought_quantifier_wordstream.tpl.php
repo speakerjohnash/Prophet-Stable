@@ -119,7 +119,11 @@
     <button class="btn btn-default form-submit" id="load-thoughts" name="" value="Load Thoughts">
       Load Thoughts
     </button>
-    <script>buildWordStream(streamData)</script>
+    <script>
+      if (typeof streamData !== 'undefined') {
+        buildWordStream(streamData);
+      }
+    </script>
   <?php endif; ?>
 </div>
 

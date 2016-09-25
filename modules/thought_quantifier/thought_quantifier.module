@@ -10,7 +10,8 @@ function thought_quantifier_cron() {
 
   // Load thoughts and process through Prophet Mind
 	if (date('ymd', $cron_last) != date('ymd', time())) {
-    wordstream_process();
+    $result = fetch_yesterdays_thoughts();
+    wordstream_process($result);
 		variable_set('cron_last', date('ymd', time()));
 	}
    
@@ -205,6 +206,38 @@ function thought_quantifier_form($form, &$form_state) {
   
   return $form;
   
+}
+
+/**
+ * Get Yesterdays Thoughts
+ */
+
+function fetch_yesterdays_thoughts() {
+
+  # Get Thoughts from Database
+  $query = db_select('node', 'n');
+  $query->condition('n.type', 'thought', '=')->fields('n', array('title', 'uid', 'created'));
+  $query->condition('created', array(strtotime("yesterday 0:00"), strtotime("today 0:00")), 'BETWEEN');
+  $result = $query->execute();
+
+  return $result;
+
+}
+
+/**
+ * Get Todays Thoughts
+ */
+
+function fetch_todays_thoughts() {
+
+  # Get Thoughts from Database
+  $query = db_select('node', 'n');
+  $query->condition('n.type', 'thought', '=')->fields('n', array('title', 'uid', 'created'));
+  $query->condition('created', array(strtotime("today 0:00"), strtotime("tomorrow 0:00")), 'BETWEEN');
+  $result = $query->execute();
+
+  return $result;
+
 }
 
 /**

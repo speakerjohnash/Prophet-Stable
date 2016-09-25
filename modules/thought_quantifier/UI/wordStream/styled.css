@@ -30,3 +30,9 @@ p {
 #load-thoughts {
   margin: 15px 25px;
 }
+
+.stream-tooltip {
+  font-family: 'Quicksand', sans-serif;
+  color: #777;
+  font-size: 14px;
+}

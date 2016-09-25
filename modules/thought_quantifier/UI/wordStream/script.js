@@ -238,6 +238,16 @@ buildWordStream = (function($){
 				wordList = ["Total"]
 			}
 
+			// Tooltip
+			var tooltip = d3.select("body")
+			    .append("div")
+				.attr("class", "remove")
+				.style("position", "absolute")
+				.style("z-index", "20")
+				.style("visibility", "hidden")
+				.style("top", "160px")
+				.style("left", "35px");
+
 			// Format Data
 			var formattedContext = formatData(contextData, ["Total"])
 				contextLayer = stack(nest.entries(formattedContext)),
@@ -245,7 +255,7 @@ buildWordStream = (function($){
 				focusLayers = stack(nest.entries(formattedFocus));
 
 			// Scale Adjustments
-			var color = d3.scale.linear().domain([0, wordList.length]).range(["#457a8b", "#455a8b"]);
+			var color = d3.scale.linear().domain([0, (wordList.length / 4), wordList.length]).range(["#443462", "#455a8b", "#457a8b"]);
 
 			contextYScale.domain([0, d3.max(contextData, function(d) { return d["Total"]; })]);
 			focusYScale.domain([0, d3.max(formattedFocus, function(d) { return d.y0 + d.y; })]);
@@ -275,16 +285,34 @@ buildWordStream = (function($){
 				.attr("class", "layer")
 				.attr("d", function(d) { return focusArea(d.values); })
 				.attr("transform", "translate(0, " + (contextHeight + axisHeight) + ")")
-				.style("fill", function(d, i) { return color(i); });
+				.style("fill", function(d, i) { return color(i); })
+				.attr("stroke", function(d, i) { return color(i); })
+				.attr("stroke-opacity", "0.5")
+				.attr("stroke-width", "0.5px");
 
 			// Exit
 			focusFlows.exit().remove();
+
+			focus.selectAll("path.layer").attr("stroke", function(d, i) { return color(i); })		
 
 			// Transition
 			focusFlows.transition()
 				.duration(1000)
 				.attr("d", function(d) { return focusArea(d.values); })
 				.style("fill", function(d, i) { return color(i); });
+
+			// Stroke
+			focus.selectAll("path.layer").on("mouseover", handleMouseOver).on("mouseout", handleMouseOut);
+
+			function handleMouseOver(d, i) {
+				d3.select(this).style("fill", "#3d2e58")
+				tooltip.html("<p class='stream-tooltip'>" + d.key + "</p>").style("visibility", "visible");
+			}
+
+			function handleMouseOut(d, i) {
+				d3.selectAll("path.layer").style("fill", function(d, i) { return color(i); })
+				tooltip.html("").style("visibility", "hidden");
+			}
 
 		}
 

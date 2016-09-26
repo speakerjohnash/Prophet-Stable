@@ -12,25 +12,18 @@
 	border: none;
 }
 
-.rate-widget-2 ul:first-child .rate-emotion-btn{
+.rate-widget-2 li.first .rate-emotion-btn{
 	background: url('./positive.png') rgb(237, 237, 237);
 	background-position: center;
 	background-repeat: no-repeat;
 	background-size: 10px;
 }
 
-.rate-widget-2 ul:last-child .rate-emotion-btn{
+.rate-widget-2 li.last .rate-emotion-btn{
 	background: url('./negative.png') rgb(237, 237, 237);
 	background-position: center;
 	background-repeat: no-repeat;
 	background-size: 10px;
-}
-
-.rate-widget-2 li.last {
-	opacity: 0.2;
-	height: 0px;
-	overflow: visible;
-	transition: opacity .2s;
 }
 
 .thought-content .rate-widget {

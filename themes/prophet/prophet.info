@@ -56,6 +56,8 @@ stylesheets[all][] = css/style.css
 ; settings[bootstrap_cdn] = ''
 
 
+scripts[all] = js/script.js
+
 ; ;-------------------------
 ; ; METHOD 2: Bootstrap CDN
 ; ;-------------------------

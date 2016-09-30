@@ -22,7 +22,7 @@ function prophet_votingapi_insert($vote) {
 	);
 	
 	if ($type == "percent") {
-		drupal_set_message($messages[$value]);
+		// drupal_set_message($messages[$value]);
 	}	
 
 }

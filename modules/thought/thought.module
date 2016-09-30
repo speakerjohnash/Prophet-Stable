@@ -155,7 +155,7 @@ function user_post_callback($button, $node) {
 		);
 	}	
 	
-	drupal_set_message($messages[$button]);
+	// drupal_set_message($messages[$button]);
 	
 }
 

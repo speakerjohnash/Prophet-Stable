@@ -326,7 +326,8 @@ buildWordStream = (function($){
 		// Load Selected Thoughts
 		$("#load-thoughts").click(function(){
 
-			var url = "http://lifeos.vision/",
+			var currentLocation = window.location;
+				url = "/",
 				dates = brush.extent();
 				format = d3.time.format("%Y-%m-%d"),
 				min = format(dates[0]),

@@ -5,9 +5,9 @@ package = Testing
 core = 7.x
 hidden = true
 
-; Information added by drupal.org packaging script on 2012-09-20
-version = "7.x-1.0-beta5"
+; Information added by Drupal.org packaging script on 2016-11-04
+version = "7.x-1.0-rc2"
 core = "7.x"
 project = "nodetype_access"
-datestamp = "1348101871"
+datestamp = "1478295544"
 

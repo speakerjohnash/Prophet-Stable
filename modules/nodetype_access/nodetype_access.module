@@ -24,7 +24,7 @@ function nodetype_access_permission() {
 
     $perms += array(
       nodetype_access_get_permission($type) => array(
-        'title' => t('View any %type_name content', array('%type_name' => $info->name)),
+        'title' => t('View published %type_name content', array('%type_name' => $info->name)),
       ),
     );
   }
@@ -46,6 +46,7 @@ function nodetype_access_get_permission($nodetype) {
 function nodetype_access_get_permissions() {
   $permission_keys = &drupal_static(__FUNCTION__);
   if(!isset($permission_keys)) {
+    $permission_keys = array();
     foreach(node_type_get_types() as $nodetype => $info) {
       $nodetype = check_plain($nodetype);
       $permission_keys[$nodetype] = nodetype_access_get_permission($nodetype);
@@ -63,7 +64,7 @@ function nodetype_access_get_permissions() {
 function nodetype_access_node_access($node, $op, $account) {
   if ($op == 'view') {
     if (user_access(nodetype_access_get_permission($node->type), $account)) {
-      return NODE_ACCESS_ALLOW;
+      return NODE_ACCESS_IGNORE;
     }
     else {
       return NODE_ACCESS_DENY;
@@ -94,7 +95,7 @@ function nodetype_access_query_node_access_alter(QueryAlterableInterface $query)
   if (!$node_exists) {
     // Assume the primary table has a 'nid' column. Not a safe assumption, but
     // it stops Comment module from freaking out.
-    // TODO: write tests for this
+    reset($tables);
     $query->join('node', 'n', 'n.nid = ' . key($tables) . '.nid');
     $alias = 'n';
   }
@@ -104,9 +105,8 @@ function nodetype_access_query_node_access_alter(QueryAlterableInterface $query)
   if($types) {
     // only filter if necessary
     if($types != nodetype_access_get_all_types()) {
-      // $alias is not a value so a placeholder might not do the right thing
-      // but we should sanitize it anyway i think
-      $query->where(check_plain($alias) . '.type IN (:types)', array(':types' => $types));
+      // Escape the alias
+      $query->where(db_escape_field($alias) . '.type IN (:types)', array(':types' => $types));
     }
   } else {
     // '1=0' evaluates to a boolean on postgresql as well as on mysql
@@ -118,8 +118,6 @@ function nodetype_access_query_node_access_alter(QueryAlterableInterface $query)
 
 /**
  * Returns the list of node types that a user can access.
- *
- * TODO: do we really want the db_query in here?
  */
 function nodetype_access_get_accessible_types() {
   global $user;

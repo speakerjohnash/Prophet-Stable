@@ -218,10 +218,18 @@ function thought_quantifier_form_submit($form, &$form_state) {
 
 function thought_quantifier_form($form, &$form_state) {
 
+  //Truncate table word_counts;
+
   # Submit Button
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Process Thoughts'),
+    '#submit' => array('thought_quantifier_form_submit'),
+  );
+
+  $form['purge'] = array(
+    '#type' => 'submit',
+    '#value' => t('Purge Stream'),
     '#submit' => array('thought_quantifier_form_submit'),
   );
   
@@ -339,7 +347,7 @@ function store_wordcounts($wordcounts, $uid) {
 function query_prophet_mind($user) {
 
   # Send Thoughts to Prophet Mind  
-  $url = 'http://54.213.81.208:443/wordstream/';
+  $url = 'http://127.0.0.1:443/wordstream/';
   $options = array(
   'http' => array(
     'method'  => 'POST',

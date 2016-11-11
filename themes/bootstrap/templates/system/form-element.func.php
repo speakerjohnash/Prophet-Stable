@@ -80,7 +80,7 @@ function bootstrap_form_element(&$variables) {
   }
 
   // Check for errors and set correct error class.
-  if ((isset($element['#parents']) && form_get_error($element)) || (!empty($element['#required']) && bootstrap_setting('forms_required_has_error'))) {
+  if ((isset($element['#parents']) && form_get_error($element) !== NULL) || (!empty($element['#required']) && bootstrap_setting('forms_required_has_error'))) {
     $wrapper_attributes['class'][] = 'has-error';
   }
 
@@ -117,12 +117,8 @@ function bootstrap_form_element(&$variables) {
   // Render the label for the form element.
   $build['label'] = array(
     '#markup' => theme('form_element_label', $variables),
+    '#weight' => $element['#title_display'] === 'before' ? 0 : 2,
   );
-
-  // Increase the label weight if it should be displayed after the element.
-  if ($element['#title_display'] === 'after') {
-    $build['label']['#weight'] = 10;
-  }
 
   // Checkboxes and radios render the input element inside the label. If the
   // element is neither of those, then the input element must be rendered here.
@@ -149,6 +145,7 @@ function bootstrap_form_element(&$variables) {
       '#markup' => $element['#children'],
       '#prefix' => !empty($prefix) ? $prefix : NULL,
       '#suffix' => !empty($suffix) ? $suffix : NULL,
+      '#weight' => 1,
     );
   }
 
@@ -159,7 +156,7 @@ function bootstrap_form_element(&$variables) {
       '#attributes' => array(
         'class' => array('help-block'),
       ),
-      '#weight' => 20,
+      '#weight' => isset($element['#description_display']) && $element['#description_display'] === 'before' ? 0 : 20,
       0 => array('#markup' => filter_xss_admin($element['#description'])),
     );
   }

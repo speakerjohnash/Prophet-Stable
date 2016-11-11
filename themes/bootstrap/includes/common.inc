@@ -69,43 +69,68 @@ function bootstrap_element_smart_description(&$element, &$target = NULL, $input_
 
   $html = FALSE;
   $type = !empty($element['#type']) ? $element['#type'] : FALSE;
-  if (!$input_only || !empty($target['#input']) || !empty($element['#smart_description']) || !empty($target['#smart_description'])) {
-    if (!empty($element['#description']) && empty($target['#attributes']['title']) && empty($target['#attributes']['data-toggle'])) {
-      if (_bootstrap_is_simple_string($element['#description'], $length, $allowed_tags, $html)) {
-        // Default property (on the element itself).
-        $property = 'attributes';
 
-        // Add the tooltip to the #label_attributes property for 'checkbox'
-        // and 'radio' elements.
-        if ($type === 'checkbox' || $type === 'radio') {
-          $property = 'label_attributes';
-        }
-        // Add the tooltip to the #wrapper_attributes property for 'checkboxes'
-        // and 'radios' elements.
-        elseif ($type === 'checkboxes' || $type === 'radios') {
-          $property = 'wrapper_attributes';
-        }
-        // Add the tooltip to the #input_group_attributes property for elements
-        // that have valid input groups set.
-        elseif ((!empty($element['#field_prefix']) || !empty($element['#field_suffix'])) && (!empty($element['#input_group']) || !empty($element['#input_group_button']))) {
-          $property = 'input_group_attributes';
-        }
+  // Return if element or target shouldn't have "simple" tooltip descriptions.
+  if (($input_only && !isset($target['#input']))
+    // Ignore text_format elements.
+    // @see https://www.drupal.org/node/2478339
+    || $type === 'text_format'
 
-        // Retrieve the proper attributes array.
-        $attributes = &_bootstrap_get_attributes($target, $property);
+    // Ignore if the actual element has no #description set.
+    || empty($element['#description'])
 
-        // Set the tooltip attributes.
-        $attributes['title'] = $allowed_tags !== FALSE ? filter_xss($element['#description'], $allowed_tags) : $element['#description'];
-        $attributes['data-toggle'] = 'tooltip';
-        if ($html || $allowed_tags === FALSE) {
-          $attributes['data-html'] = 'true';
-        }
+    // Ignore if the target element already has a "data-toggle" attribute set.
+    || !empty($target['#attributes']['data-toggle'])
 
-        // Remove the element description so it isn't (re-)rendered later.
-        unset($element['#description']);
-      }
-    }
+    // Ignore if the target element is #disabled.
+    || isset($target['#disabled'])
+
+    // Ignore if either the actual element or target element has an explicit
+    // #smart_description property set to FALSE.
+    || (isset($element['#smart_description']) && !$element['#smart_description'])
+    || (isset($target['#smart_description']) && !$target['#smart_description'])
+
+    // Ignore if the description is not "simple".
+    || !_bootstrap_is_simple_string($element['#description'], $length, $allowed_tags, $html)
+  ) {
+    // Set the both the actual element and the target element
+    // #smart_description property to FALSE.
+    $element['#smart_description'] = FALSE;
+    $target['#smart_description'] = FALSE;
+    return;
   }
+
+  // Default property (on the element itself).
+  $property = 'attributes';
+
+  // Add the tooltip to the #label_attributes property for 'checkbox'
+  // and 'radio' elements.
+  if ($type === 'checkbox' || $type === 'radio') {
+    $property = 'label_attributes';
+  }
+  // Add the tooltip to the #wrapper_attributes property for 'checkboxes'
+  // and 'radios' elements.
+  elseif ($type === 'checkboxes' || $type === 'radios') {
+    $property = 'wrapper_attributes';
+  }
+  // Add the tooltip to the #input_group_attributes property for elements
+  // that have valid input groups set.
+  elseif ((!empty($element['#field_prefix']) || !empty($element['#field_suffix'])) && (!empty($element['#input_group']) || !empty($element['#input_group_button']))) {
+    $property = 'input_group_attributes';
+  }
+
+  // Retrieve the proper attributes array.
+  $attributes = &_bootstrap_get_attributes($target, $property);
+
+  // Set the tooltip attributes.
+  $attributes['title'] = $allowed_tags !== FALSE ? filter_xss($element['#description'], $allowed_tags) : $element['#description'];
+  $attributes['data-toggle'] = 'tooltip';
+  if ($html || $allowed_tags === FALSE) {
+    $attributes['data-html'] = 'true';
+  }
+
+  // Remove the element description so it isn't (re-)rendered later.
+  unset($element['#description']);
 }
 
 /**
@@ -548,6 +573,50 @@ function _bootstrap_file_scan_directory($dir, $mask, array $options = array()) {
     cache_set($cid, $files);
   }
   return $files[$hash];
+}
+
+/**
+ * Filters HTML to prevent cross-site-scripting (XSS) vulnerabilities.
+ *
+ * Very similar to core's filter_xss(). It does, however, include the addition
+ * of the "span", "div" and "i" elements which are commonly used in Bootstrap.
+ *
+ * @param string $string
+ *   The string with raw HTML in it. It will be stripped of everything that can
+ *   cause an XSS attack.
+ * @param array $allowed_tags
+ *   An array of allowed tags.
+ *
+ * @return string
+ *   An XSS safe version of $string, or an empty string if $string is not
+ *   valid UTF-8.
+ *
+ * @see filter_xss()
+ */
+function _bootstrap_filter_xss($string, array $allowed_tags = NULL) {
+  if (is_null($allowed_tags)) {
+    $allowed_tags = array(
+      // Inline elements.
+      'a',
+      'cite',
+      'em',
+      'i',
+      'span',
+      'strong',
+
+      // Block elements.
+      'blockquote',
+      'code',
+      'div',
+      'ul',
+      'ol',
+      'li',
+      'dl',
+      'dt',
+      'dd',
+    );
+  }
+  return filter_xss($string, $allowed_tags);
 }
 
 /**
@@ -1033,6 +1102,7 @@ function _bootstrap_colorize_text($string, $default = '') {
         t('Filter')             => 'primary',
         t('Submit')             => 'primary',
         t('Search')             => 'primary',
+        t('Log in')             => 'primary',
 
         // Success class.
         t('Add')                => 'success',
@@ -1131,6 +1201,7 @@ function _bootstrap_iconize_text($string, $default = '') {
         t('Delete')     => 'trash',
         t('Remove')     => 'trash',
         t('Upload')     => 'upload',
+        t('Log In')     => 'log-in',
       ),
     );
 
@@ -1175,7 +1246,8 @@ function _bootstrap_preprocess_theme_suggestion(&$variables) {
 
     // Iterate over the preprocess functions.
     foreach ($registry[$hook]['preprocess functions'] as $function) {
-      if (function_exists($function)) {
+      // Ensure that the function is not this one (recursive) and exists.
+      if ($function !== __FUNCTION__ && function_exists($function)) {
         // Invoke theme hook suggestion preprocess function.
         $function($variables, $hook);
 

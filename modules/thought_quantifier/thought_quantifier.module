@@ -217,7 +217,9 @@ function thought_quantifier_form_submit($form, &$form_state) {
       wordstream_process($result);
       break;
     case 'Purge Stream':
+      $result = db_truncate('word_counts')->execute();
       dpm("Purge Stream");
+      //Truncate table word_counts;
       break;
     default:
       break;
@@ -230,8 +232,6 @@ function thought_quantifier_form_submit($form, &$form_state) {
  */
 
 function thought_quantifier_form($form, &$form_state) {
-
-  //Truncate table word_counts;
 
   # Submit Button
   $form['submit'] = array(

@@ -212,7 +212,7 @@ function thought_quantifier_form_submit($form, &$form_state) {
   $triggering_element = $form_state['triggering_element']['#value'];
 
   switch ($triggering_element) {
-    case 'Process Thoughts':
+    case "Process Today's Thoughts":
       $result = fetch_todays_thoughts();
       wordstream_process($result);
       parse_trackables($result);
@@ -221,6 +221,12 @@ function thought_quantifier_form_submit($form, &$form_state) {
       $result = db_truncate('word_counts')->execute();
       dpm("Purge Stream");
       //Truncate table word_counts;
+      break;
+    case 'Reprocess Stream':
+      $drop = db_truncate('word_counts')->execute();
+      $result = fetch_all_thoughts();
+      wordstream_process($result);
+      dpm("Reprocess Stream");
       break;
     default:
       break;
@@ -237,13 +243,19 @@ function thought_quantifier_form($form, &$form_state) {
   # Submit Button
   $form['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Process Thoughts'),
+    '#value' => t("Process Today's Thoughts"),
     '#submit' => array('thought_quantifier_form_submit'),
   );
 
   $form['purge'] = array(
     '#type' => 'submit',
     '#value' => t('Purge Stream'),
+    '#submit' => array('thought_quantifier_form_submit'),
+  );
+
+  $form['reprocess'] = array(
+    '#type' => 'submit',
+    '#value' => t('Reprocess Stream'),
     '#submit' => array('thought_quantifier_form_submit'),
   );
   
@@ -261,6 +273,21 @@ function fetch_yesterdays_thoughts() {
   $query = db_select('node', 'n');
   $query->condition('n.type', 'thought', '=')->fields('n', array('title', 'uid', 'created'));
   $query->condition('created', array(strtotime("yesterday 0:00"), strtotime("today 0:00")), 'BETWEEN');
+  $result = $query->execute();
+
+  return $result;
+
+}
+
+/**
+ * Get All Thoughts
+ */
+
+function fetch_all_thoughts() {
+
+  # Get Thoughts from Database
+  $query = db_select('node', 'n');
+  $query->condition('n.type', 'thought', '=')->fields('n', array('title', 'uid', 'created'));
   $result = $query->execute();
 
   return $result;

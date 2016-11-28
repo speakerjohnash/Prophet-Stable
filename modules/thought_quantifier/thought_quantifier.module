@@ -215,6 +215,7 @@ function thought_quantifier_form_submit($form, &$form_state) {
     case 'Process Thoughts':
       $result = fetch_todays_thoughts();
       wordstream_process($result);
+      parse_trackables($result);
       break;
     case 'Purge Stream':
       $result = db_truncate('word_counts')->execute();
@@ -279,6 +280,14 @@ function fetch_todays_thoughts() {
   $result = $query->execute();
 
   return $result;
+
+}
+
+/**
+ * Run code to parse thoughts for trackables
+ */
+
+function parse_trackables($result) {
 
 }
 

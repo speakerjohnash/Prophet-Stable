@@ -1,0 +1,63 @@
+body {
+  font: 10px sans-serif;
+}
+
+p {
+  font: 12px helvetica;
+}
+
+svg {
+  float: right;
+}
+
+.chart { 
+  background: #fff;
+}
+
+.axis path, .axis line {
+  fill: none;
+  stroke: #000;
+  stroke-width: 1px;
+  shape-rendering: crispEdges;
+}
+
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1px;
+}
+
+.legend .face{
+  opacity: 0.5;
+}
+
+.legend .eye {
+  opacity: 0.6;
+}
+
+.mouth {
+  fill: none;
+  stroke: #000;
+  stroke-width: 1.5px;
+}
+
+.fat-line {
+  fill: none;
+  stroke: url(#temperature-gradient);
+  opacity: 0.5;
+  stroke-width: 40px;
+}
+
+.widget {
+  margin-left: 25px;
+  margin-top: 15px;
+}
+
+.legend {
+  float: left;
+}
+
+.brush .extent {
+  fill-opacity: .125;
+  shape-rendering: crispEdges;
+}

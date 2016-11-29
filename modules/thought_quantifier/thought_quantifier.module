@@ -187,6 +187,7 @@ function load_mood_markup() {
 
   foreach ($result as $record) {
     print_r($record);
+    print("<br>");
   }
 
   return '<div class="mood-chart">Mood Tracker</div><script>var moodData=""</script>';

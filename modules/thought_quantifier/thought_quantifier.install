@@ -43,6 +43,51 @@ function thought_quantifier_schema() {
 		),
 		'primary key' => array('uid', 'word', 'date')
 	);
+
+	$schema['trackables'] = array(
+		'description' => t('A table to store numerical values associated with tracking tags'),
+		'fields' => array(
+			'uid' => array(
+				'description' => 'A foreign key referencing uid',
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+				'default' => 0
+			),
+			'value' => array(
+				'description' => 'The numerical value associated with the tag',
+				'type' => 'float',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+				'default' => 0
+			),
+			'tag' => array(
+				'description' => 'The tag associated with the trackable',
+				'type' => 'varchar',
+				'length' => 32,
+				'not null' => TRUE,
+				'default' => ''
+			),
+			'date' => array(
+				'description' => 'The date of the trackable being stored',
+				'mysql_type' => 'DATE',
+				'not null' => TRUE
+			)
+		),
+		'indexes' => array(
+			'uid' => array('uid'),
+			'word' => array('tag'),
+			'word' => array('date')
+		),
+		'foreign keys' => array(
+			'uid' => array(
+				'table' => 'users',
+				'columns' => array('uid' => 'uid')
+			)
+		),
+		'primary key' => array('uid', 'tag', 'date')
+	);
+
 	return $schema;
 }
 ?>

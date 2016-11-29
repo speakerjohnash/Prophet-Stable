@@ -215,6 +215,7 @@ function thought_quantifier_form_submit($form, &$form_state) {
     case "Process Today's Thoughts":
       $result = fetch_todays_thoughts();
       wordstream_process($result);
+      $result = fetch_todays_thoughts();
       parse_trackables($result);
       break;
     case 'Purge Stream':
@@ -226,6 +227,8 @@ function thought_quantifier_form_submit($form, &$form_state) {
       $drop = db_truncate('word_counts')->execute();
       $result = fetch_all_thoughts();
       wordstream_process($result);
+      $result = fetch_all_thoughts();
+      parse_trackables($result);
       dpm("Reprocess Stream");
       break;
     default:
@@ -315,7 +318,33 @@ function fetch_todays_thoughts() {
  */
 
 function parse_trackables($result) {
-  dpm("Nothing");
+
+  $hashtag_pattern = "/\#[a-zA-Z]+:? \d+\.?\d?/";
+  $values = [];
+
+  foreach ($result as $record) {
+
+    $date = date('Y-m-d', $record->created);
+
+    if (!array_key_exists($date, $values)) {
+      $values[$date] = [];
+    }
+
+    if (preg_match_all($hashtag_pattern, $record->title, $matches_out)) {
+      foreach ($matches_out[0] as $match) {
+        $parts = preg_split('/\s+/', $match);
+        $tag = str_replace(":", "", $parts[0]);
+        array_push($values[$date], ["tag" => $tag, "value" => $parts[1], "uid" => $record->uid]);
+      }
+    }
+
+  }
+
+  # TODO: Save parsed values to database
+
+  dpm(serialize($values));
+  dpm("Trackables Parsed");
+
 }
 
 /**

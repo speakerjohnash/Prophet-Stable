@@ -116,6 +116,11 @@
 <div>
   <?php if ($logged_in): ?>
     <?php print render($page['content']['thought_quantifier_mood_tracker_block']); ?>
+    <script>
+      if (typeof moodData !== 'undefined') {
+        buildMoodTracker(moodData);
+      }
+    </script>
   <?php endif; ?>
 </div>
 

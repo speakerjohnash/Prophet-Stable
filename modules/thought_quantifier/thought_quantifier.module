@@ -193,7 +193,7 @@ function load_mood_markup() {
 
   $json_data = json_encode(array_values($formatted_data));
 
-  return '<div class="mood-chart">Mood Tracker</div><script>var moodData=' . $json_data . '</script>';
+  return '<div class="mood-chart"></div><script>var moodData=' . $json_data . '</script>';
 
 }
 

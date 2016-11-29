@@ -1,7 +1,6 @@
-(function sentimentStream() {
+buildMoodTracker = (function($){
 
-	var csvpath = "../../data/output/sentiment_stream.csv",
-		globalData = {};
+	var globalData = {};
 
 	var beaming = "M 13 21 C 13 43 50 43 50 21",
 		happy = "M 17 30 S 28 48 48 30 53 34",
@@ -12,8 +11,6 @@
 		depressed = "M17, 35 C23,12 51,22 51,35";
 	
 	var states = [depressed, sad, unpleasant, neutral, pleasant, happy, beaming];
-
-	d3.csv(csvpath, buildStream);
 
 	/* Find intermediate states between paths */
 	function pathTween(d1, precision) {
@@ -66,14 +63,14 @@
 	function formatData(data) {
 
 		var mood = [],
-			format = d3.time.format("%m/%d/%Y");
+			format = d3.time.format("%Y-%m-%d");
 
 		data.forEach(function(day) {
 			if (parseFloat(day["mood"], 10) != 0) {
 				m_row = {
-					"value" : parseFloat(day["mood"], 10), 
+					"value" : parseFloat(day["value"], 10), 
 					"key" : "mood", 
-					"date" : format.parse(day["Post Date"])
+					"date" : format.parse(day["date"])
 				}
 				mood.push(m_row)
 			}
@@ -112,11 +109,11 @@
 			legendWidth = 100,
 			axisHeight = 20;
 
-		var svg = d3.select(".canvas-frame").append("svg")
+		var svg = d3.select(".mood-chart").append("svg")
 			.attr("width", width - legendWidth)
 			.attr("height", height + axisHeight);
 
-		var legend = d3.select(".canvas-frame").append("svg")
+		var legend = d3.select(".mood-chart").append("svg")
 			.attr("class", "legend")
 			.attr("height", height)
 			.attr("width", faceSize);
@@ -160,8 +157,10 @@
 		// Gradients
 		var moodRange = d3.extent(mood, function(d) { return d["value"] }),
 			format = d3.time.format("%m/%d/%Y"),
-			timeRange = d3.extent(data, function(d) { return format.parse(d["Post Date"])}),
+			timeRange = d3.extent(data, function(d) { return format.parse(d["date"])}),
 			colorScale = d3.scale.linear().domain([-1, 0, 1]).range(['#694a69', 'steelblue', 'yellow']);
+
+		console.log(moodRange)
 
 		var x = d3.time.scale().domain(timeRange).range([0, width - legendWidth]),
 			y = d3.scale.linear().domain([-1, 1]).range([height, 0])
@@ -284,4 +283,6 @@
 
 	}
 
-})();
+	return buildStream
+
+})(jQuery);

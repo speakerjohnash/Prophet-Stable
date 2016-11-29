@@ -169,6 +169,26 @@ function thought_quantifier_block_view($delta = '') {
 
 function load_mood_markup() {
 
+  global $user;
+
+  # Get Max Date
+  $max_min_dates = db_query('select max(date), min(date) from trackables where uid = ' . $user->uid)->fetchAssoc();
+
+  # Fetch Trackable Values
+  $query = db_select('trackables', 'w');
+  $query->condition('w.uid', $user->uid, '=')->fields('w', array('date', 'tag', 'value'));
+
+  # Limit By Top Words
+  $db_or = db_or();
+  $db_or->condition('w.tag', "#mood", '=');
+  $query->condition($db_or);
+
+  $result = $query->execute();
+
+  foreach ($result as $record) {
+    print_r($record);
+  }
+
   return '<div class="mood-chart">Mood Tracker</div><script>var moodData=""</script>';
 
 }

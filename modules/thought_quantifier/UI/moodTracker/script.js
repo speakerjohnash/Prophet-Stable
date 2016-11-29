@@ -103,13 +103,15 @@ buildMoodTracker = (function($){
 
 		globalData = data;
 
-		var width = window.innerWidth,
+		var margin = 15,
+			width = window.innerWidth - margin,
 			height = window.innerHeight / 2.5,
 			faceSize = 70;
 			legendWidth = 100,
 			axisHeight = 20;
 
 		var svg = d3.select(".mood-chart").append("svg")
+			.attr("class", "main-svg")
 			.attr("width", width - legendWidth)
 			.attr("height", height + axisHeight);
 

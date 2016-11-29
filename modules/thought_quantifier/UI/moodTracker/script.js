@@ -156,11 +156,9 @@ buildMoodTracker = (function($){
 
 		// Gradients
 		var moodRange = d3.extent(mood, function(d) { return d["value"] }),
-			format = d3.time.format("%m/%d/%Y"),
+			format = d3.time.format("%Y-%m-%d"),
 			timeRange = d3.extent(data, function(d) { return format.parse(d["date"])}),
 			colorScale = d3.scale.linear().domain([-1, 0, 1]).range(['#694a69', 'steelblue', 'yellow']);
-
-		console.log(moodRange)
 
 		var x = d3.time.scale().domain(timeRange).range([0, width - legendWidth]),
 			y = d3.scale.linear().domain([-1, 1]).range([height, 0])
@@ -168,7 +166,7 @@ buildMoodTracker = (function($){
 
 		// Line 
 		var line = d3.svg.line()
-			.interpolate(movingAvg(3))
+			.interpolate(movingAvg(1))
 			.x(function(d) { return x(d.date); })
 			.y(function(d) { return mY(d.value); });
 

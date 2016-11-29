@@ -59,11 +59,24 @@ function thought_quantifier_menu() {
     'page callback' => 'theme_wordstream_page',
     'access arguments' => array('access content'),
   );
+  $items['moodtracker'] = array(
+    'type' => MENU_CALLBACK,
+    'page callback' => 'theme_moodtracker_page',
+    'access arguments' => array('access content'),
+  );
   return $items;
 }
 
 /**
- * Returns Markup for Page
+ * Returns Markup for Mood Tracker
+ */
+
+function theme_moodtracker_page() {
+  return theme('thought_quantifier_moodtracker');
+}
+
+/**
+ * Returns Markup for Word Stream
  */
 
 function theme_wordstream_page() {
@@ -79,6 +92,9 @@ function thought_quantifier_theme($existing, $type, $theme, $path) {
     'thought_quantifier_wordstream' => array(
       'template' => 'thought_quantifier_wordstream'
     ),
+    'thought_quantifier_moodtracker' => array(
+      'template' => 'thought_quantifier_moodtracker'
+    ),
   );
 }
 
@@ -89,6 +105,9 @@ function thought_quantifier_theme($existing, $type, $theme, $path) {
 function thought_quantifier_preprocess_page(&$variables, $hook) {
   if($_GET['q'] == 'wordstream') {
     $variables['theme_hook_suggestions'][] = 'thought_quantifier_wordstream';
+  }
+  if($_GET['q'] == 'moodtracker') {
+    $variables['theme_hook_suggestions'][] = 'thought_quantifier_moodtracker';
   }
 }
 
@@ -150,7 +169,7 @@ function thought_quantifier_block_view($delta = '') {
 
 function load_mood_markup() {
 
-  return '<div class="mood-chart">MOOD TRACKER</div><script>var moodData=""</script>';
+  return '<div class="mood-chart">Mood Tracker</div><script>var moodData=""</script>';
 
 }
 

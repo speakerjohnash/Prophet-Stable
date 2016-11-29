@@ -115,15 +115,7 @@
 
 <div>
   <?php if ($logged_in): ?>
-  <?php print render($page['content']['thought_quantifier_word_stream_block']); ?>
-    <script>
-      if (typeof streamData !== 'undefined') {
-        buildWordStream(streamData);
-      }
-    </script>
-    <button class="btn btn-default form-submit" id="load-thoughts" name="" value="Load Thoughts">
-      Load Thoughts
-    </button>
+    <?php print render($page['content']['thought_quantifier_mood_tracker_block']); ?>
   <?php endif; ?>
 </div>
 

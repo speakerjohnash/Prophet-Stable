@@ -38,6 +38,13 @@ function thought_quantifier_block_info() {
     'pages' => 'wordstream'
   );
 
+  $blocks['mood_tracker_block'] = array(
+    'info' => t('Mood Tracker'),
+    'cache' => DRUPAL_CACHE_GLOBAL,
+    'region' => 'Content',
+    'visibility' => 1
+  );
+
   return $blocks;
 
 }
@@ -116,9 +123,34 @@ function thought_quantifier_block_view($delta = '') {
         ]
       ];
       break;
+    case 'mood_tracker_block':
+      $block['subject'] = '';
+      $block['content'] = [
+        '#markup' => load_mood_markup(),
+        '#attached' => [
+          'js' => [
+            'http://d3js.org/d3.v2.js',
+            $m_path . '/UI/moodTracker/script.js'
+          ],
+          'css' => [
+            $m_path . '/UI/moodTracker/styled.css',
+          ]
+        ]
+      ];
+      break;
   }
 
   return $block;
+
+}
+
+/**
+* Load Mood Stream Data and Produce Markup
+*/
+
+function load_mood_markup() {
+
+  return '<div class="mood-chart">MOOD TRACKER</div><script>var moodData=""</script>';
 
 }
 

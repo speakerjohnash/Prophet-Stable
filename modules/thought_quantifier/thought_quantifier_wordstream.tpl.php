@@ -115,7 +115,8 @@
 
 <div>
   <?php if ($logged_in): ?>
-  <?php print render($page['content']['thought_quantifier_word_stream_block']); ?>
+    <?php print render($page['content']['thought_quantifier_mood_tracker_block']); ?>
+    <?php print render($page['content']['thought_quantifier_word_stream_block']); ?>
     <script>
       if (typeof streamData !== 'undefined') {
         buildWordStream(streamData);

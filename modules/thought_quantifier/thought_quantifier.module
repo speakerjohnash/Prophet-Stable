@@ -42,7 +42,8 @@ function thought_quantifier_block_info() {
     'info' => t('Mood Tracker'),
     'cache' => DRUPAL_CACHE_GLOBAL,
     'region' => 'Content',
-    'visibility' => 1
+    'visibility' => 1,
+    'pages' => 'moodtracker'
   );
 
   return $blocks;
@@ -184,13 +185,15 @@ function load_mood_markup() {
   $query->condition($db_or);
 
   $result = $query->execute();
+  $formatted_data = [];
 
   foreach ($result as $record) {
-    print_r($record);
-    print("<br>");
+    array_push($formatted_data, $record);
   }
 
-  return '<div class="mood-chart">Mood Tracker</div><script>var moodData=""</script>';
+  $json_data = json_encode(array_values($formatted_data));
+
+  return '<div class="mood-chart">Mood Tracker</div><script>var moodData=' . $json_data . '</script>';
 
 }
 

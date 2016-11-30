@@ -61,3 +61,12 @@ p {
   fill-opacity: .125;
   shape-rendering: crispEdges;
 }
+
+.no-thoughts {
+  width: 365px;
+  font-family: 'Quicksand', sans-serif;
+  color: #555;
+  font-size: 20px;
+  text-align: center;
+  margin: 150px auto;
+}

@@ -191,6 +191,10 @@ function load_mood_markup() {
     array_push($formatted_data, $record);
   }
 
+  if (count($formatted_data) < 5) {
+    return "<div class='no-thoughts'>Insufficient mood data available. Track mood via <strong>#mood: [0-10]</strong>. This visualization updates at midnight</div>";
+  }
+
   $json_data = json_encode(array_values($formatted_data));
 
   return '<div class="mood-chart"></div><script>var moodData=' . $json_data . '</script>';

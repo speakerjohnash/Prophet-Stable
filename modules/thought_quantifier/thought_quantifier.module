@@ -6,14 +6,16 @@
 
 function thought_quantifier_cron() {
 
-	$cron_last = variable_get('cron_last');
+  $cron_last = variable_get('cron_last');
 
   // Load thoughts and process through Prophet Mind
-	if (date('ymd', $cron_last) != date('ymd', time())) {
-    $result = fetch_yesterdays_thoughts();
+  if (date('ymd', $cron_last) != date('ymd', time())) {
+    $result = fetch_recent_thoughts();
     wordstream_process($result);
-		variable_set('cron_last', date('ymd', time()));
-	}
+    $result = fetch_recent_thoughts();
+    parse_trackables($result);
+    variable_set('cron_last', date('ymd', time()));
+  }
    
 }
 
@@ -38,12 +40,11 @@ function thought_quantifier_block_info() {
     'pages' => 'wordstream'
   );
 
-  $blocks['mood_tracker_block'] = array(
-    'info' => t('Mood Tracker'),
+  $blocks['trackables_block'] = array(
+    'info' => t('Trackables'),
     'cache' => DRUPAL_CACHE_GLOBAL,
-    'region' => 'Content',
     'visibility' => 1,
-    'pages' => 'moodtracker'
+    'pages' => 'trackables'
   );
 
   return $blocks;
@@ -60,9 +61,9 @@ function thought_quantifier_menu() {
     'page callback' => 'theme_wordstream_page',
     'access arguments' => array('access content'),
   );
-  $items['moodtracker'] = array(
+  $items['trackables'] = array(
     'type' => MENU_CALLBACK,
-    'page callback' => 'theme_moodtracker_page',
+    'page callback' => 'theme_trackables_page',
     'access arguments' => array('access content'),
   );
   return $items;
@@ -94,7 +95,7 @@ function thought_quantifier_theme($existing, $type, $theme, $path) {
       'template' => 'thought_quantifier_wordstream'
     ),
     'thought_quantifier_moodtracker' => array(
-      'template' => 'thought_quantifier_moodtracker'
+      'template' => 'thought_quantifier_trackables'
     ),
   );
 }
@@ -107,8 +108,8 @@ function thought_quantifier_preprocess_page(&$variables, $hook) {
   if($_GET['q'] == 'wordstream') {
     $variables['theme_hook_suggestions'][] = 'thought_quantifier_wordstream';
   }
-  if($_GET['q'] == 'moodtracker') {
-    $variables['theme_hook_suggestions'][] = 'thought_quantifier_moodtracker';
+  if($_GET['q'] == 'trackables') {
+    $variables['theme_hook_suggestions'][] = 'thought_quantifier_trackables';
   }
 }
 
@@ -143,17 +144,19 @@ function thought_quantifier_block_view($delta = '') {
         ]
       ];
       break;
-    case 'mood_tracker_block':
+    case 'trackables_block':
       $block['subject'] = '';
       $block['content'] = [
-        '#markup' => load_mood_markup(),
+        '#markup' => load_trackables_markup(),
         '#attached' => [
           'js' => [
             'http://d3js.org/d3.v2.js',
-            $m_path . '/UI/moodTracker/script.js'
+            $m_path . '/UI/wordStream/bootstrap-multiselect.js',
+            $m_path . '/UI/trackables/script.js'
           ],
           'css' => [
-            $m_path . '/UI/moodTracker/styled.css',
+            $m_path . '/UI/trackables/styled.css',
+            $m_path . '/UI/wordStream/bootstrap-multiselect.css'
           ]
         ]
       ];
@@ -165,15 +168,10 @@ function thought_quantifier_block_view($delta = '') {
 }
 
 /**
-* Load Mood Stream Data and Produce Markup
+* Load trackables data
 */
 
-function load_mood_markup() {
-
-  global $user;
-
-  # Get Max Date
-  $max_min_dates = db_query('select max(date), min(date) from trackables where uid = ' . $user->uid)->fetchAssoc();
+function load_trackables_data($tag, $user) {
 
   # Fetch Trackable Values
   $query = db_select('trackables', 'w');
@@ -181,7 +179,7 @@ function load_mood_markup() {
 
   # Limit By Top Words
   $db_or = db_or();
-  $db_or->condition('w.tag', "#mood", '=');
+  $db_or->condition('w.tag', $tag, '=');
   $query->condition($db_or);
 
   $result = $query->execute();
@@ -191,47 +189,208 @@ function load_mood_markup() {
     array_push($formatted_data, $record);
   }
 
-  if (count($formatted_data) < 5) {
-    return "<div class='no-thoughts'>Insufficient mood data available. Track mood via <strong>#mood: [0-10]</strong>. This visualization updates at midnight</div>";
-  }
+  return $formatted_data;
 
-  # Group by Week or by Day
-  $date_range = strtotime($max_min_dates['max(date)']) - strtotime($max_min_dates['min(date)']);
-  $days_in_data = floor($date_range/(60*60*24));
+}
 
-  # Get Date Details
-  $first_monday = strtotime('monday this week', strtotime($max_min_dates['min(date)']));
-  $last_monday = strtotime('monday this week', strtotime($max_min_dates['max(date)']));
+/**
+* Load thought type counts and calculate temporal focus
+*/
 
-  # TODO: Group By Week
-  if ($days_in_data < 60) {
-    $json_data = json_encode(array_values($formatted_data));
-  } else {
-    $grouped = [];
+function get_temporal_focus($user) {
 
-    foreach ($formatted_data as $row) {
-      $date = strtotime($row->date);
-      $week = strtotime('monday this week', $date);
-      if (array_key_exists(date('Y-m-d', $week), $grouped)) {
-        array_push($grouped[date('Y-m-d', $week)], floatval($row->value));
-      } else {
-        $grouped[date('Y-m-d', $week)] = [];
-        array_push($grouped[date('Y-m-d', $week)], floatval($row->value));
+      $tf_query = 'select a.field_type_value, a.entity_id, b.created, b.nid, b.uid ';
+      $tf_from = 'from ubs_field_data_field_type a, ubs_node b ';
+      $tf_where = 'where a.entity_id = b.nid and b.uid = ' . $user->uid;
+      $tf_result = db_query($tf_query . $tf_from . $tf_where);
+
+      $result_array = [];
+      $counted = [];
+
+      foreach ($tf_result as $row) {
+        $date = date('Y-m-d', $row->created);
+        if (array_key_exists($date, $counted)) {
+          $counted[$date][$row->field_type_value] += 1;
+        } else {
+          $counted[$date] = [
+            'Predict' => 0,
+            'Reflect' => 0,
+            'Ask' => 0,
+            'State' => 0,
+          ];
+        }
       }
-    }
 
-    $weekly = [];
-    foreach ($grouped as $key => $value) {
-      $average = array_sum($value) / count($value);
-      //$sum = array_sum($value);
-      array_push($weekly, ['tag' =>  '#mood', 'value' => $average, 'date' => $key]);
-    }
+      foreach ($counted as $date => $counts) {
+        $total_thoughts = $counts['Predict'] + $counts['Reflect'] + $counts['State'];
+        $percent_predictions = $counts['Predict'] / $total_thoughts;
+        $percent_reflections = $counts['Reflect'] / $total_thoughts;
+        $percent_statements = $counts['State'] / $total_thoughts;
+        $temporal_focus = $percent_predictions - $percent_reflections;
+        $temporal_focus = $temporal_focus / (1 - $percent_statements);
+        $row = new StdClass;
+        $row->tag = '#temporalFocus';
+        $row->value = $temporal_focus;
+        $row->date = $date;
+        array_push($result_array, $row);
+      }
 
-    $json_data = json_encode($weekly);
-    //$json_data = json_encode(array_values($formatted_data)); DAILY
+      return $result_array;
+
+}
+
+/**
+* Load thought type counts and calculate curiosity
+*/
+
+function calculate_curiousity($user) {
+
+      $tf_query = 'select a.field_type_value, a.entity_id, b.created, b.nid, b.uid ';
+      $tf_from = 'from ubs_field_data_field_type a, ubs_node b ';
+      $tf_where = 'where a.entity_id = b.nid and b.uid = ' . $user->uid;
+      $tf_result = db_query($tf_query . $tf_from . $tf_where);
+
+      $result_array = [];
+      $counted = [];
+
+      foreach ($tf_result as $row) {
+        $date = date('Y-m-d', $row->created);
+        if (array_key_exists($date, $counted)) {
+          $counted[$date][$row->field_type_value] += 1;
+        } else {
+          $counted[$date] = [
+            'Predict' => 0,
+            'Reflect' => 0,
+            'Ask' => 0,
+            'State' => 0,
+          ];
+        }
+      }
+
+      foreach ($counted as $date => $counts) {
+        $total_thoughts = array_sum($counts);
+        $curiosity = $counts['Ask'] / $total_thoughts;
+        $row = new StdClass;
+        $row->tag = '#curiosity';
+        $row->value = $curiosity;
+        $row->date = $date;
+        array_push($result_array, $row);
+      }
+
+      return $result_array;
+
+}
+
+/**
+* Load privacy and output privacy over time
+*/
+
+function process_privacy($user) {
+
+  $privacy_query = 'select a.field_private_value, a.entity_id, b.created, b.nid, b.uid ';
+  $privacy_from = 'from ubs_field_data_field_private a, ubs_node b ';
+  $privacy_where = 'where a.entity_id = b.nid and b.uid = ' . $user->uid;
+  $privacy_result = db_query($privacy_query . $privacy_from . $privacy_where);
+  $result_array = [];
+
+  foreach ($privacy_result as $row) {
+    $date = date('Y-m-d', $row->created);
+    if (array_key_exists($date, $counted)) {
+      array_push($counted[$date], $row->field_private_value);
+    } else {
+      $counted[$date] = [];
+    }
   }
 
-  return '<div class="mood-chart"></div><script>var moodData=' . $json_data . '</script>';
+  foreach ($counted as $date => $counts) {
+    $privacy = array_sum($counts) / count($counts);
+    $row = new StdClass;
+    $row->tag = '#privacy';
+    $row->value = $privacy;
+    $row->date = $date;
+    array_push($result_array, $row);
+  }
+
+  return $result_array;
+
+}
+
+/**
+* Load Trackables Data and Produce Markup
+*/
+
+function load_trackables_markup() {
+
+  global $user;
+
+  $main_query = 'select tag, count(tag) from trackables ';
+  $where_condition = 'where uid = ' . $user->uid;
+  $groupby = ' group by tag order by count(tag)';
+  $result = db_query($main_query . $where_condition . $groupby);
+  $top_tags = [];
+  $top_tag = '';
+  $top_tag_count = 0;
+
+  foreach ($result as $record) {
+    $record_arr = get_object_vars($record);
+    if ($record_arr['count(tag)'] > 5) {
+      array_push($top_tags, $record_arr['tag']);
+    }
+    if ($record_arr['count(tag)'] > $top_tag_count) {
+      $top_tag = $record_arr['tag'];
+      $top_tag_count = $record_arr['count(tag)'];
+    }
+  }
+
+  $top_tags = array_merge($top_tags, ["#curiosity", "#privacy", "#temporalFocus"]);
+  $tag = ($_GET["tag"] ? "#" . $_GET["tag"] : "#temporalFocus");
+  $method = ($_GET["method"] ? $_GET["method"] : "average");
+  $groupby = ($_GET["groupby"] ? $_GET["groupby"] : "week");
+
+  # Load Data
+  if ($tag == "#temporalFocus") {
+    $formatted_data = get_temporal_focus($user);
+  } elseif ($tag == "#privacy") {
+    $formatted_data = process_privacy($user);
+  } elseif ($tag == "#curiosity") {
+    $formatted_data = calculate_curiousity($user);
+  } else {
+    $formatted_data = load_trackables_data($tag, $user);
+  }
+
+  if (count($formatted_data) < 5) {
+    return "<div class='no-thoughts'>Insufficient data available. Continue posting to get access to auto-trackables. Manually track values via <strong>#tagName: (-∞, ∞)</strong></div>";
+  }
+
+  # Group By Day or Week
+  $grouped = [];
+
+  foreach ($formatted_data as $row) {
+    $date = strtotime($row->date);
+    $week = strtotime('monday this week', $date);
+    $week = ($groupby == "week" ? $week : $date);
+    if (array_key_exists(date('Y-m-d', $week), $grouped)) {
+      array_push($grouped[date('Y-m-d', $week)], floatval($row->value));
+    } else {
+      $grouped[date('Y-m-d', $week)] = [];
+      array_push($grouped[date('Y-m-d', $week)], floatval($row->value));
+    }
+  }
+
+  $collected = [];
+
+  foreach ($grouped as $key => $value) {
+    $average = array_sum($value) / count($value);
+    $sum = array_sum($value);
+    $value = ($method == "sum" ? $sum : $average);
+    array_push($collected, ['tag' =>  '#trackable', 'value' => $value, 'date' => $key]);
+  }
+
+  $json_data = json_encode($collected);
+
+  $html = '<div class="trackables-chart"></div>' . '<script>var trackablesData=' . $json_data . '; var trackables=' . json_encode($top_tags) . '</script>'; 
+
+  return $html;
 
 }
 
@@ -325,25 +484,24 @@ function thought_quantifier_form_submit($form, &$form_state) {
   $triggering_element = $form_state['triggering_element']['#value'];
 
   switch ($triggering_element) {
-    case "Process Today's Thoughts":
-      $result = fetch_todays_thoughts();
+    case "Process Recent Thoughts":
+      $result = fetch_recent_thoughts();
       wordstream_process($result);
-      $result = fetch_todays_thoughts();
-      parse_trackables($result);
+      $results = fetch_recent_thoughts();
+      parse_trackables($results);
       break;
     case 'Purge Stream':
       $result = db_truncate('word_counts')->execute();
       $result = db_truncate('trackables')->execute();
-      dpm("Purge Stream");
-      //Truncate table word_counts;
+      dpm("Purged Stream");
       break;
     case 'Reprocess Stream':
       $drop = db_truncate('word_counts')->execute();
+      $result = db_truncate('trackables')->execute();
       $result = fetch_all_thoughts();
       wordstream_process($result);
       $result = fetch_all_thoughts();
       parse_trackables($result);
-      dpm("Reprocess Stream");
       break;
     default:
       break;
@@ -360,7 +518,7 @@ function thought_quantifier_form($form, &$form_state) {
   # Submit Button
   $form['submit'] = array(
     '#type' => 'submit',
-    '#value' => t("Process Today's Thoughts"),
+    '#value' => t("Process Recent Thoughts"),
     '#submit' => array('thought_quantifier_form_submit'),
   );
 
@@ -381,15 +539,15 @@ function thought_quantifier_form($form, &$form_state) {
 }
 
 /**
- * Get Yesterdays Thoughts
+ * Get Thoughts from Today and Yesterday
  */
 
-function fetch_yesterdays_thoughts() {
+function fetch_recent_thoughts() {
 
   # Get Thoughts from Database
   $query = db_select('node', 'n');
   $query->condition('n.type', 'thought', '=')->fields('n', array('title', 'uid', 'created'));
-  $query->condition('created', array(strtotime("yesterday 0:00"), strtotime("today 0:00")), 'BETWEEN');
+  $query->condition('created', array(strtotime("yesterday 0:00"), strtotime("tomorrow 0:00")), 'BETWEEN');
   $result = $query->execute();
 
   return $result;
@@ -412,33 +570,17 @@ function fetch_all_thoughts() {
 }
 
 /**
- * Get Todays Thoughts
- */
-
-function fetch_todays_thoughts() {
-
-  # Get Thoughts from Database
-  $query = db_select('node', 'n');
-  $query->condition('n.type', 'thought', '=')->fields('n', array('title', 'uid', 'created'));
-  $query->condition('created', array(strtotime("today 0:00"), strtotime("tomorrow 0:00")), 'BETWEEN');
-  $result = $query->execute();
-
-  return $result;
-
-}
-
-/**
  * Run code to parse thoughts for trackables
  */
 
 function parse_trackables($result) {
 
-  $hashtag_pattern = "/\#[a-zA-Z]+:? \d+\.?\d?/";
+  $hashtag_pattern = "/\#[a-zA-Z]+:? \d+\.?\d{0,3}/";
   $values = [];
 
   foreach ($result as $record) {
 
-    $date = date('Y-m-d', $record->created);
+    $date = date('Y-m-d H:i:s', $record->created);
 
     if (!array_key_exists($date, $values)) {
       $values[$date] = [];
@@ -454,6 +596,7 @@ function parse_trackables($result) {
 
   }
 
+  # Save parsed values to database
   store_tagcounts($values);
   dpm("Trackables Parsed");
 

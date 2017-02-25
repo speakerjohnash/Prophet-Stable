@@ -21,14 +21,14 @@ p {
   shape-rendering: crispEdges;
 }
 
+.axis {
+  font-family: 'Quicksand', sans-serif;
+}
+
 .line {
   fill: none;
   stroke: steelblue;
   stroke-width: 1px;
-}
-
-.legend .face{
-  opacity: 0.5;
 }
 
 .legend .eye {
@@ -45,7 +45,6 @@ p {
   fill: none;
   stroke: url(#temperature-gradient);
   opacity: 0.5;
-  stroke-width: 40px;
 }
 
 .widget {
@@ -60,6 +59,11 @@ p {
 .brush .extent {
   fill-opacity: .125;
   shape-rendering: crispEdges;
+}
+
+.toggle {
+    margin: 15px;
+    margin-left: 0px;
 }
 
 .no-thoughts {

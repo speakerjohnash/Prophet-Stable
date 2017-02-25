@@ -73,6 +73,8 @@
  * @ingroup themeable
  */
 ?>
+<link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+<script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
 <header id="navbar" role="banner" class="<?php print $navbar_classes; ?>">
   <div class="container">
     <div class="navbar-header">
@@ -115,10 +117,10 @@
 
 <div>
   <?php if ($logged_in): ?>
-    <?php print render($page['content']['thought_quantifier_mood_tracker_block']); ?>
+    <?php print render($page['content']['thought_quantifier_trackables_block']); ?>
     <script>
-      if (typeof moodData !== 'undefined') {
-        buildMoodTracker(moodData);
+      if (typeof trackablesData !== 'undefined') {
+        buildTrackablesVisualization(trackablesData);
       }
     </script>
   <?php endif; ?>

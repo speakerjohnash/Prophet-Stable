@@ -200,7 +200,7 @@ function load_trackables_data($tag, $user) {
 function get_temporal_focus($user) {
 
       $tf_query = 'select a.field_type_value, a.entity_id, b.created, b.nid, b.uid ';
-      $tf_from = 'from ubs_field_data_field_type a, ubs_node b ';
+      $tf_from = 'from field_data_field_type a, node b ';
       $tf_where = 'where a.entity_id = b.nid and b.uid = ' . $user->uid;
       $tf_result = db_query($tf_query . $tf_from . $tf_where);
 
@@ -223,6 +223,9 @@ function get_temporal_focus($user) {
 
       foreach ($counted as $date => $counts) {
         $total_thoughts = $counts['Predict'] + $counts['Reflect'] + $counts['State'];
+        if ($total_thoughts < 1) {
+          continue;
+        }
         $percent_predictions = $counts['Predict'] / $total_thoughts;
         $percent_reflections = $counts['Reflect'] / $total_thoughts;
         $percent_statements = $counts['State'] / $total_thoughts;
@@ -246,7 +249,7 @@ function get_temporal_focus($user) {
 function calculate_curiousity($user) {
 
       $tf_query = 'select a.field_type_value, a.entity_id, b.created, b.nid, b.uid ';
-      $tf_from = 'from ubs_field_data_field_type a, ubs_node b ';
+      $tf_from = 'from field_data_field_type a, node b ';
       $tf_where = 'where a.entity_id = b.nid and b.uid = ' . $user->uid;
       $tf_result = db_query($tf_query . $tf_from . $tf_where);
 
@@ -288,7 +291,7 @@ function calculate_curiousity($user) {
 function process_privacy($user) {
 
   $privacy_query = 'select a.field_private_value, a.entity_id, b.created, b.nid, b.uid ';
-  $privacy_from = 'from ubs_field_data_field_private a, ubs_node b ';
+  $privacy_from = 'from field_data_field_private a, node b ';
   $privacy_where = 'where a.entity_id = b.nid and b.uid = ' . $user->uid;
   $privacy_result = db_query($privacy_query . $privacy_from . $privacy_where);
   $result_array = [];
@@ -343,9 +346,9 @@ function load_trackables_markup() {
   }
 
   $top_tags = array_merge($top_tags, ["#curiosity", "#privacy", "#temporalFocus"]);
-  $tag = ($_GET["tag"] ? "#" . $_GET["tag"] : "#temporalFocus");
-  $method = ($_GET["method"] ? $_GET["method"] : "average");
-  $groupby = ($_GET["groupby"] ? $_GET["groupby"] : "week");
+  $tag = (isset($_GET['tag']) ? "#" . $_GET["tag"] : "#temporalFocus");
+  $method = (isset($_GET['method']) ? $_GET["method"] : "average");
+  $groupby = (isset($_GET['group']) ? $_GET["groupby"] : "week");
 
   # Load Data
   if ($tag == "#temporalFocus") {

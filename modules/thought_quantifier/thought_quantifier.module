@@ -56,16 +56,28 @@ function thought_quantifier_block_info() {
  */
 
 function thought_quantifier_menu() {
+
   $items['wordstream'] = array(
     'type' => MENU_CALLBACK,
     'page callback' => 'theme_wordstream_page',
     'access arguments' => array('access content'),
+    'access_callback' => 'user_is_logged_in',
+    'access arguments' => array('access content'),
+    'type' => MENU_NORMAL_ITEM,
+    'menu_name' => 'main-menu',
+    'title' => t('Stream Search'),
   );
+
   $items['trackables'] = array(
     'type' => MENU_CALLBACK,
     'page callback' => 'theme_trackables_page',
+    'access_callback' => 'user_is_logged_in',
     'access arguments' => array('access content'),
+    'type' => MENU_NORMAL_ITEM,
+    'menu_name' => 'main-menu',
+    'title' => t('Trackables'),
   );
+
   return $items;
 }
 

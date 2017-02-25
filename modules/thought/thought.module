@@ -46,7 +46,7 @@ function thought_form($form, &$form_state) {
 	$form['thought'] = array(
     '#type' => 'textfield',
     '#required' => TRUE,
-    '#maxlength' => 200,
+    '#maxlength' => 256,
     //'#title' => t("Prediction")
   );
 
@@ -105,6 +105,54 @@ function thought_form_validate($form, &$form_state) {
 }
 
 /**
+ * Run code to parse thoughts for trackables
+ */
+
+function parse_trackable($node) {
+
+  global $user;
+
+  $thought = $node->title;
+  $hashtag_pattern = "/\#[a-zA-Z]+:? \d+\.?\d{0,3}/";
+  $date_key = date('Y-m-d H:i:s', $node->created);
+  $values = [];
+  $values[$date_key] = [];
+
+  if (preg_match_all($hashtag_pattern, $thought, $matches_out)) {
+    foreach ($matches_out[0] as $match) {
+      $parts = preg_split('/\s+/', $match);
+      $tag = str_replace(":", "", $parts[0]);
+      array_push($values[$date_key], ["tag" => strtolower($tag), "value" => $parts[1], "uid" => $user->uid]);
+    }
+  } 
+
+  # Save parsed values to database
+  if (count($values[$date_key]) > 0) {
+    store_tags($values);
+  }
+
+}
+
+/**
+ * Save Tag Counts to Database
+ */
+
+function store_tags($tagcounts) {
+
+  foreach ($tagcounts as $date => $records) {
+    foreach ($records as $record) {
+      $query = db_merge('trackables');
+      $query->key(['uid' => $record['uid'], 'tag' => strtolower(substr($record['tag'], 0, 32)), 'date' => $date]);
+      $query->fields([
+        'value' => $record['value']
+      ]);
+      $query->execute();
+    }
+  }
+
+}
+
+/**
  * Save the new thought
  */
 
@@ -126,37 +174,13 @@ function thought_form_submit($form, &$form_state) {
 	#$node->date = $form_state['values']['date'];
 	node_object_prepare($node);
 	node_save($node);
-	
-	# Callback to User
-	user_post_callback($triggering_element, $node);
 
-}
+  if (strpos($form_state['values']['thought'], '#') !== false) { 
+    drupal_set_message("Trackable Logged: " . $form_state['values']['thought']);
+  }
 
-/**
- * Reflect a thought back at user
- * that describes action taken
- */
+  parse_trackable($node);
 
-function user_post_callback($button, $node) {
-	
-	if (!$node->private) {
-		$messages = array(
-			'State' => t('A mind speaks'),
-			'Predict' => t('A mind dreams'),
-			'Ask' => t('A mind seeks'),
-			'Reflect' => t('A mind reflects'),
-		);
-	} else {
-		$messages = array(
-			'State' => t('A mind mutters in whispers'),
-			'Predict' => t('A mind sees a hidden future'),
-			'Ask' => t('A mind seeks truth from within'),
-			'Reflect' => t('A mind reflects upon inner truths'),
-		);
-	}	
-	
-	// drupal_set_message($messages[$button]);
-	
 }
 
 /**
@@ -200,5 +224,5 @@ function thought_node_access_records($node) {
 }
 
 function thought_form_thought_node_form_alter(&$form, &$form_state) {
-  $form['title']['#maxlength'] = 200;
+  $form['title']['#maxlength'] = 256;
 }

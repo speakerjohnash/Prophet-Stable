@@ -5,7 +5,27 @@
 
 @import url(http://fonts.googleapis.com/css?family=Quicksand:400,700);
 
-/* New Front Page Design */
+/* Truth Rating Widget */
+
+.views-field-value span { 
+	color: #aaa;
+}
+
+.true-label {
+	display: inline-block;
+    float: right;
+}
+
+/* Bubble Stream */
+
+#edit-title-wrapper input {
+	color: white;
+}
+
+.admin-menu-search.form-control {
+	height: inherit;
+	width: inherit;
+}
 
 .rate-widget-2 li .rate-emotion-btn {
 	text-indent: -9999px;

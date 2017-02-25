@@ -43,12 +43,24 @@ unset($fields['field_type']);
 
   	<?php
 
-  		if ($field->label == 'Truth' and $color_class == 'ask') {
-
-  		} else {
-  		  print $field->label_html;
-        print $field->content;	
-  		}
+  		if ($id == 'title') {
+        if ($color_class == 'ask') {
+          print $field->label_html;
+          print $field->content;
+        } else {
+          print $field->label_html;
+          print $field->content;
+          #print $row->node_title;
+        }
+      } elseif ($field->label == 'Truth') {
+        if ($color_class != 'ask') {
+          print "<div class='views-label views-label-value'><span>False</span><span class='true-label'>True</span></div>";
+          print $field->content;  
+        }
+      } else {
+        print $field->label_html;
+        print $field->content;
+      }
 
   	?>
 

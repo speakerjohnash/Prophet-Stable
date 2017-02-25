@@ -70,11 +70,11 @@ function thought_quantifier_menu() {
 }
 
 /**
- * Returns Markup for Mood Tracker
+ * Returns Markup for Trackables Page
  */
 
-function theme_moodtracker_page() {
-  return theme('thought_quantifier_moodtracker');
+function theme_trackables_page() {
+  return theme('thought_quantifier_trackables');
 }
 
 /**
@@ -94,7 +94,7 @@ function thought_quantifier_theme($existing, $type, $theme, $path) {
     'thought_quantifier_wordstream' => array(
       'template' => 'thought_quantifier_wordstream'
     ),
-    'thought_quantifier_moodtracker' => array(
+    'thought_quantifier_trackables' => array(
       'template' => 'thought_quantifier_trackables'
     ),
   );

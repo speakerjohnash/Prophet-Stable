@@ -234,15 +234,24 @@ function get_temporal_focus($user) {
       }
 
       foreach ($counted as $date => $counts) {
+        
         $total_thoughts = $counts['Predict'] + $counts['Reflect'] + $counts['State'];
+
         if ($total_thoughts < 1) {
           continue;
         }
+
         $percent_predictions = $counts['Predict'] / $total_thoughts;
         $percent_reflections = $counts['Reflect'] / $total_thoughts;
         $percent_statements = $counts['State'] / $total_thoughts;
         $temporal_focus = $percent_predictions - $percent_reflections;
-        $temporal_focus = $temporal_focus / (1 - $percent_statements);
+
+        if ($percent_statements == 0) {
+          $temporal_focus = $temporal_focus / (1 - $percent_statements);
+        } else {
+          $temporal_focus = 0;
+        }
+
         $row = new StdClass;
         $row->tag = '#temporalFocus';
         $row->value = $temporal_focus;

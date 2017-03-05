@@ -87,6 +87,14 @@
 
 /* Exposed Search */
 
+.views-exposed-form .form-item {
+	padding-top: 10px;
+}
+
+.form-item.form-item-thought-type.form-type-select.form-group {
+    width: 95px;
+}
+
 fieldset .panel-heading a.panel-title {
     padding: 5px 10px;
     font-size: 13px;

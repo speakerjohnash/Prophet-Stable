@@ -70,7 +70,7 @@ function thought_quantifier_schema() {
 			),
 			'date' => array(
 				'description' => 'The date of the trackable being stored',
-				'mysql_type' => 'DATE',
+				'mysql_type' => 'DATETIME',
 				'not null' => TRUE
 			)
 		),

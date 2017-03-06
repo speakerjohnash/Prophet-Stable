@@ -27,9 +27,11 @@ function thought_quantifier_block_info() {
 
   $blocks = array();
 
-  $blocks['thought_quantifier_block'] = array(
-    'info' => t('Temporary block to debug and build thought quantification'),
-    'cache' => DRUPAL_CACHE_GLOBAL
+  $blocks['debug_block'] = array(
+    'info' => t('Debug'),
+    'cache' => DRUPAL_CACHE_GLOBAL,
+    'visibility' => 1,
+    'pages' => 'debug'
   );
 
   $blocks['word_stream_block'] = array(
@@ -60,7 +62,6 @@ function thought_quantifier_menu() {
   $items['wordstream'] = array(
     'type' => MENU_CALLBACK,
     'page callback' => 'theme_wordstream_page',
-    'access arguments' => array('access content'),
     'access_callback' => 'user_is_logged_in',
     'access arguments' => array('access content'),
     'type' => MENU_NORMAL_ITEM,
@@ -78,7 +79,26 @@ function thought_quantifier_menu() {
     'title' => t('Trackables'),
   );
 
+  $items['debug'] = array(
+    'page callback' => 'theme_debug_page',
+    'access_callback' => 'user_is_logged_in',
+    'access arguments' => array('access content'),
+    'type' => MENU_NORMAL_ITEM,
+    'title' => t('Debug'),
+  );
+
   return $items;
+
+}
+
+function thought_quantifier_access_by_uid() {
+  global $user;
+
+  if ($user->uid == 1 || $user->uid == 3) {
+    return TRUE;
+  }
+
+  return FALSE;
 }
 
 /**
@@ -98,6 +118,14 @@ function theme_wordstream_page() {
 }
 
 /**
+ * Returns Markup for Word Stream
+ */
+
+function theme_debug_page() {
+  return theme('thought_quantifier_debug');
+}
+
+/**
  * Implements hook_theme.
  */
 
@@ -108,6 +136,9 @@ function thought_quantifier_theme($existing, $type, $theme, $path) {
     ),
     'thought_quantifier_trackables' => array(
       'template' => 'thought_quantifier_trackables'
+    ),
+    'thought_quantifier_debug' => array(
+      'template' => 'thought_quantifier_debug'
     ),
   );
 }
@@ -123,6 +154,9 @@ function thought_quantifier_preprocess_page(&$variables, $hook) {
   if($_GET['q'] == 'trackables') {
     $variables['theme_hook_suggestions'][] = 'thought_quantifier_trackables';
   }
+  if($_GET['q'] == 'debug') {
+    $variables['theme_hook_suggestions'][] = 'thought_quantifier_debug';
+  }
 }
 
 /**
@@ -135,7 +169,7 @@ function thought_quantifier_block_view($delta = '') {
   $m_path = drupal_get_path('module', 'thought_quantifier');
 
   switch ($delta) {
-    case 'thought_quantifier_block':
+    case 'debug_block':
       $block['subject'] = '';
       $block['content'] = drupal_get_form('thought_quantifier_form');
       break;
@@ -234,7 +268,7 @@ function get_temporal_focus($user) {
       }
 
       foreach ($counted as $date => $counts) {
-        
+
         $total_thoughts = $counts['Predict'] + $counts['Reflect'] + $counts['State'];
 
         if ($total_thoughts < 1) {

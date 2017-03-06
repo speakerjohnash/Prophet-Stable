@@ -5,6 +5,11 @@
 
 @import url(http://fonts.googleapis.com/css?family=Quicksand:400,700);
 
+#block-thought-quantifier-debug-block {
+	width: 490px;
+	margin: 100px auto;
+}
+
 /* Truth Rating Widget */
 
 .views-field-value span { 

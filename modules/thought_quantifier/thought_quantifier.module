@@ -126,6 +126,46 @@ function theme_debug_page() {
 }
 
 /**
+ * Implements hook_rate_templates().
+ */
+
+function thought_quantifier_rate_templates() {
+
+  $templates = array();
+  $templates['gradient'] = new stdClass();
+  $templates['gradient']->value_type = 'percent';
+  $templates['gradient']->theme = 'rate_template_gradient';
+  $templates['gradient']->css = drupal_get_path('module', 'thought_quantifier') . '/UI/gradient/styled.css';
+  $templates['gradient']->js = drupal_get_path('module', 'thought_quantifier') . '/UI/gradient/script.js';
+  $templates['gradient']->customizable = FALSE;
+  $templates['gradient']->translate = FALSE;
+  $templates['gradient']->template_title = t('Gradient');
+
+  return $templates;
+}
+
+/**
+ * Preprocess function for the gradient template.
+ */
+
+function thought_quantifier_preprocess_rate_template_gradient(&$variables) {
+
+  extract($variables);
+
+  drupal_add_library('system', 'ui.gradient');
+
+  // Calculate start value for slider.
+  if ($variables['results']['count'] == 0) {
+    $variables['results']['rating'] = 50;
+    $variables['value'] = 50;
+  }
+  else {
+    $variables['value'] = (int) $variables['results']['rating'];
+  }
+
+}
+
+/**
  * Implements hook_theme.
  */
 
@@ -140,6 +180,19 @@ function thought_quantifier_theme($existing, $type, $theme, $path) {
     'thought_quantifier_debug' => array(
       'template' => 'thought_quantifier_debug'
     ),
+    'rate_template_gradient' => array(
+      'path' => drupal_get_path('module', 'thought_quantifier') . '/UI/gradient',
+      'template' => 'gradient',
+      'arguments' => array(
+          'links' => NULL, 
+          'results' => NULL, 
+          'mode' => NULL, 
+          'just_voted' => FALSE, 
+          'content_type' => NULL, 
+          'content_id' => NULL, 
+          'display_options' => NULL
+      )
+    )
   );
 }
 

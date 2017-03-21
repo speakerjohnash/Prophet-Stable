@@ -1,9 +1,9 @@
-#gradient-container {
+.rate-gradient {
 	font-family: 'Quicksand';
-	margin: 100px auto;
+	width: 200px;
 }
 
-.labels {
+.rate-gradient-labels {
 	color: #aaa;
 	font-size: 13px;
 	display: flex;
@@ -22,4 +22,15 @@
 .percent-label {
 	font-size: 11px;
     padding-top: 1px;
+}
+
+.empty-gradient {
+	background: rgb(242, 242, 242);
+	border-radius: 100px;
+	height: 20px;
+}
+
+.full-gradient {
+	background: rgb(241, 232, 134);
+	border-radius: 100px;
 }

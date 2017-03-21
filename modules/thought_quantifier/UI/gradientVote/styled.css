@@ -1,0 +1,25 @@
+#gradient-container {
+	font-family: 'Quicksand';
+	margin: 100px auto;
+}
+
+.labels {
+	color: #aaa;
+	font-size: 13px;
+	display: flex;
+	flex-flow: row wrap;
+	justify-content: space-between;
+}
+
+.left-label {
+	padding-left: 3px;
+}
+
+.right-label {
+	padding-right: 3px;
+}
+
+.percent-label {
+	font-size: 11px;
+    padding-top: 1px;
+}

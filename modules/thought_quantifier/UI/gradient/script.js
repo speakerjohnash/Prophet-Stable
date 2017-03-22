@@ -28,10 +28,14 @@
               percent = Math.round(percent * 10) / 10,
               percent = percent + 5,
               percent = percent > 100 ? 100 : percent,
-              trueVote = Math.round(rangeScale(percent) * 10) / 10;
+              trueVote = Math.round(rangeScale(percent) * 10) / 10,
+              opacity = trueVote / 100,
+              inverseOpacity = 1 - opacity;
 
           d3.select(this).select(".full-gradient").style("width", percent + "%");
-          d3.select(this).select(".percent-label").text(trueVote + "%")       
+          d3.select(this).select(".percent-label").text(trueVote + "%")
+          d3.select(this).select(".left-label").style("opacity", inverseOpacity)
+          d3.select(this).select(".right-label").style("opacity", opacity)    
 
         })
 

@@ -12,9 +12,27 @@
               widget_mode: ids[4]
             };
 
-        var fillBar = $(this).find(".full-gradient")
+        var rateContainer = d3.select(this)
+            fillBar = rateContainer.select(".full-gradient");
 
-        fillBar.css("width", fillBar.data("average") + "%")
+        // Set Default State
+        fillBar.style("width", fillBar.attr("data-average") + "%")
+
+        // Hover
+        rateContainer.on("mousemove", function(d) {
+
+          var x = d3.mouse(this)[0],
+              percent = (x / 200) * 100,
+              percent = Math.round(percent * 10) / 10;
+
+          d3.select(this).select(".full-gradient").style("width", percent + "%");        
+
+        })
+
+        // Reset Default
+        rateContainer.on("mouseout", function(d) {
+          d3.select(this).select(".full-gradient").style("width", fillBar.attr("data-average") + "%")
+        })
 
       });
     }

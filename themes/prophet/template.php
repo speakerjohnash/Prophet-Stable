@@ -5,7 +5,7 @@
  * template.php
  */
 
- /**
+/**
   * Implements hook_theme().
   */
   
@@ -16,6 +16,20 @@ function prophet_theme() {
     'template' => 'thought-form',
     ),
   );
+}
+
+/**
+  * Implements template_preprocess_views_view().
+  */
+
+function prophet_preprocess_views_view(&$vars) {
+
+  $view = &$vars['view'];
+
+  if ($view->name == 'Bubble_Stream') {
+    drupal_add_js("https://d3js.org/d3.v4.min.js", 'external');
+  }
+
 }
 
 function prophet_form_views_exposed_form_alter(&$form, &$form_state) {

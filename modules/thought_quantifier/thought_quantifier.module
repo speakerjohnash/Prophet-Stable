@@ -156,11 +156,10 @@ function thought_quantifier_preprocess_rate_template_gradient(&$variables) {
 
   // Calculate start value for slider.
   if ($variables['results']['count'] == 0) {
-    $variables['results']['rating'] = 50;
     $variables['value'] = 50;
   }
   else {
-    $variables['value'] = (int) $variables['results']['rating'];
+    $variables['value'] = (float) $variables['results']['rating'];
   }
 
 }

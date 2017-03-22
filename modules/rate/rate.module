@@ -577,6 +577,7 @@ function rate_save_vote($widget, $content_type, $content_id, $value, $ahah = FAL
   // Prevent votes from saved twice. This does not check for different widgets /
   // content id's, but it's only possible to save a single vote per request for now,
   // unless one uses the $reset flag with a TRUE value
+
   static $saved = FALSE;
   if ($saved && !$reset) {
     return;
@@ -653,7 +654,7 @@ function rate_save_vote($widget, $content_type, $content_id, $value, $ahah = FAL
     'value' => $value,
     'tag' => $widget->tag,
   );
-  
+
   $criteria = NULL;
 
   // Call hook_rate_vote_alter().
@@ -851,9 +852,13 @@ function rate_vote_ahah() {
     // Validate the token against the general widget token (found in the widget classes).
     $id = "rate-$widget_id-$content_type-$content_id";
     $token = _rate_get_token($id);
-    $value = (int) $_GET['value'];
+    $value = (float) $_GET['value'];
 
-    if (isset($_GET['token']) && $_GET['token'] == $token && $value >= 0 && $value <= 100) {
+    if (isset($_GET['token'])) {
+      $token_received = _rate_get_token($_GET['token']);
+    }
+
+    if ($token_received == $token && $value >= 0 && $value <= 100) {
       rate_save_vote($widget, $content_type, $content_id, $value, TRUE);
     }
   }

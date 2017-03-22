@@ -24,10 +24,10 @@
 <div class="rate-gradient">
 	<div class="rate-gradient-labels">
 		<span class="left-label">False</span>
-		<span class="percent-label"><?php print $results['rating'] . "%"; ?></span>
+		<span class="percent-label"><?php print $value . "%"; ?></span>
 		<span class="right-label">True</span>
 	</div>
 	<div class="empty-gradient">
-		<div class="full-gradient" data-average="<?php print $results['rating']; ?>"></div>
+		<div class="full-gradient" data-average="<?php print $value; ?>"></div>
 	</div>
 </div>

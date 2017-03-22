@@ -23,7 +23,10 @@
 
           var x = d3.mouse(this)[0],
               percent = (x / 200) * 100,
-              percent = Math.round(percent * 10) / 10;
+              percent = percent < 5 ? 5 : percent > 100 ? 100 : percent,
+              percent = Math.round(percent * 10) / 10,
+              percent = percent + 5,
+              percent = percent > 100 ? 100 : percent;
 
           d3.select(this).select(".full-gradient").style("width", percent + "%");        
 

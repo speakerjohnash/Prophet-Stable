@@ -28,6 +28,6 @@
 		<span class="right-label">True</span>
 	</div>
 	<div class="empty-gradient">
-		<div class="full-gradient"></div>
+		<div class="full-gradient" data-average="<?php print $results['rating']; ?>"></div>
 	</div>
 </div>

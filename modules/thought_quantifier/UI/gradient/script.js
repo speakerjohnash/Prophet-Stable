@@ -47,10 +47,11 @@
 
           var that = d3.select(this),
               fillBar = that.select(".full-gradient"),
+              width = rangeScale.invert(fillBar.attr("data-average")),
               opacity = fillBar.attr("data-average") / 100,
               inverseOpacity = 1 - opacity;
 
-          that.select(".full-gradient").style("width", fillBar.attr("data-average") + "%")
+          that.select(".full-gradient").style("width", width + "%")
           that.select(".percent-label").text(fillBar.attr("data-average") + "%")
           that.select(".left-label").style("opacity", inverseOpacity)
           that.select(".right-label").style("opacity", opacity)

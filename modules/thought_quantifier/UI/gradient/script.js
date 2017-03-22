@@ -13,7 +13,8 @@
             };
 
         var rateContainer = d3.select(this)
-            fillBar = rateContainer.select(".full-gradient");
+            fillBar = rateContainer.select(".full-gradient"),
+            rangeScale = d3.scaleLinear().domain([10, 100]).range([0, 100]);
 
         // Set Default State
         fillBar.style("width", fillBar.attr("data-average") + "%")
@@ -26,15 +27,18 @@
               percent = percent < 5 ? 5 : percent > 100 ? 100 : percent,
               percent = Math.round(percent * 10) / 10,
               percent = percent + 5,
-              percent = percent > 100 ? 100 : percent;
+              percent = percent > 100 ? 100 : percent,
+              trueVote = Math.round(rangeScale(percent) * 10) / 10;
 
-          d3.select(this).select(".full-gradient").style("width", percent + "%");        
+          d3.select(this).select(".full-gradient").style("width", percent + "%");
+          d3.select(this).select(".percent-label").text(trueVote + "%")       
 
         })
 
         // Reset Default
         rateContainer.on("mouseout", function(d) {
           d3.select(this).select(".full-gradient").style("width", fillBar.attr("data-average") + "%")
+          d3.select(this).select(".percent-label").text(fillBar.attr("data-average") + "%")
         })
 
       });

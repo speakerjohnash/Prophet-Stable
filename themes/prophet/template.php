@@ -19,6 +19,20 @@ function prophet_theme() {
 }
 
 /**
+  * Implements hook_preprocess_page().
+  */
+
+function prophet_preprocess_page(&$vars, $hook = null){
+    if (isset($vars['node'])) {
+        switch ($vars['node']->type) {
+            case 'thought':
+                drupal_add_js("https://d3js.org/d3.v4.min.js", 'external');
+                break;
+        }
+    }
+}
+
+/**
   * Implements template_preprocess_views_view().
   */
 

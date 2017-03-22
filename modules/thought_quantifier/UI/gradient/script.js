@@ -101,10 +101,11 @@
                 opacity = newAverage / 100,
                 inverseOpacity = 1 - opacity,
                 d3Widget = d3.select(widget[0]),
-                fillBar = d3Widget.select(".full-gradient");
+                fillBar = d3Widget.select(".full-gradient"),
+                newWidth = rangeScale.invert(newAverage);
 
             fillBar.attr("data-average", newAverage);
-            fillBar.style("width", newAverage + "%")
+            fillBar.style("width", newWidth + "%")
             d3Widget.select(".percent-label").text(newAverage + "%")
             d3Widget.select(".left-label").style("opacity", inverseOpacity)
             d3Widget.select(".right-label").style("opacity", opacity)

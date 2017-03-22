@@ -14,10 +14,16 @@
 
         var rateContainer = d3.select(this)
             fillBar = rateContainer.select(".full-gradient"),
+            leftLabel = rateContainer.select(".left-label"),
+            rightLabel = rateContainer.select(".right-label"),
+            opacity = fillBar.attr("data-average") / 100,
+            inverseOpacity = 1 - opacity,
             rangeScale = d3.scaleLinear().domain([10, 100]).range([0, 100]);
 
         // Set Default State
         fillBar.style("width", fillBar.attr("data-average") + "%")
+        rightLabel.style("opacity", opacity) 
+        leftLabel.style("opacity", inverseOpacity) 
 
         // Hover
         rateContainer.on("mousemove", function(d) {
@@ -43,6 +49,8 @@
         rateContainer.on("mouseout", function(d) {
           d3.select(this).select(".full-gradient").style("width", fillBar.attr("data-average") + "%")
           d3.select(this).select(".percent-label").text(fillBar.attr("data-average") + "%")
+          d3.select(this).select(".left-label").style("opacity", inverseOpacity)
+          d3.select(this).select(".right-label").style("opacity", opacity)   
         })
 
       });

@@ -64,9 +64,8 @@
               percent = getPercent(x),
               trueVote = Math.round(rangeScale(percent) * 10) / 10,
               token = "rate-" + data["widget_id"] + "-" + data["content_type"] + "-" + data["content_id"];
+          
           data.value = trueVote;
-
-          console.log(trueVote);
 
           rateVote(widget, data, token);
 
@@ -96,11 +95,22 @@
             q = q + '&value=' + data.value;
           }
 
-          console.log(q)
-
           $.get(Drupal.settings.rate.basePath + q, function(response) {
-            console.log(response)
+
+            var newAverage = $(response).find(".full-gradient").attr("data-average"),
+                opacity = newAverage / 100,
+                inverseOpacity = 1 - opacity,
+                d3Widget = d3.select(widget[0]),
+                fillBar = d3Widget.select(".full-gradient");
+
+            fillBar.attr("data-average", newAverage);
+            fillBar.style("width", newAverage + "%")
+            d3Widget.select(".percent-label").text(newAverage + "%")
+            d3Widget.select(".left-label").style("opacity", inverseOpacity)
+            d3Widget.select(".right-label").style("opacity", opacity)
+
             widget.trigger('eventAfterRate', [data]);
+
           });
 
         }

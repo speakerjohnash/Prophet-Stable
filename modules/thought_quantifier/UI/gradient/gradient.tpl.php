@@ -28,6 +28,6 @@
 		<span class="right-label">True</span>
 	</div>
 	<div class="empty-gradient">
-		<div class="full-gradient" data-average="<?php print $value; ?>"></div>
+		<div style="<?php print 'width: ' . $value . '%'; ?>" class="full-gradient width-transition" data-average="<?php print $value; ?>"></div>
 	</div>
 </div>

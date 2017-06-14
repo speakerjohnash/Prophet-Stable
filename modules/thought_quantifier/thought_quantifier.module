@@ -30,7 +30,7 @@ function thought_quantifier_block_info() {
   $blocks['debug_block'] = array(
     'info' => t('Debug'),
     'cache' => DRUPAL_CACHE_GLOBAL,
-    'visibility' => 1,
+    'region' => 'Content',
     'pages' => 'debug'
   );
 
@@ -45,6 +45,7 @@ function thought_quantifier_block_info() {
   $blocks['trackables_block'] = array(
     'info' => t('Trackables'),
     'cache' => DRUPAL_CACHE_GLOBAL,
+    'region' => 'Content',
     'visibility' => 1,
     'pages' => 'trackables'
   );
@@ -135,8 +136,8 @@ function thought_quantifier_rate_templates() {
   $templates['gradient'] = new stdClass();
   $templates['gradient']->value_type = 'percent';
   $templates['gradient']->theme = 'rate_template_gradient';
-  $templates['gradient']->css = drupal_get_path('module', 'thought_quantifier') . '/UI/gradient/styled.css';
-  $templates['gradient']->js = drupal_get_path('module', 'thought_quantifier') . '/UI/gradient/script.js';
+  $templates['gradient']->css = drupal_get_path('module', 'thought_quantifier') . '/UI/gradient/gradient.css';
+  $templates['gradient']->js = drupal_get_path('module', 'thought_quantifier') . '/UI/gradient/gradient.js';
   $templates['gradient']->customizable = FALSE;
   $templates['gradient']->translate = FALSE;
   $templates['gradient']->template_title = t('Gradient');
@@ -219,6 +220,7 @@ function thought_quantifier_block_view($delta = '') {
 
   $block = array();
   $m_path = drupal_get_path('module', 'thought_quantifier');
+  $r_path = drupal_get_path('module', 'rate');
 
   switch ($delta) {
     case 'debug_block':
@@ -233,7 +235,8 @@ function thought_quantifier_block_view($delta = '') {
           'js' => [
             'http://d3js.org/d3.v2.js',
             $m_path . '/UI/wordStream/bootstrap-multiselect.js',
-            $m_path . '/UI/wordStream/script.js'
+            $m_path . '/UI/wordStream/script.js',
+            $r_path . 'rate.js',
           ],
           'css' => [
             $m_path . '/UI/wordStream/styled.css',

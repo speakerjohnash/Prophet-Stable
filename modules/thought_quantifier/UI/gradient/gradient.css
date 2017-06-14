@@ -35,3 +35,8 @@
 	border-radius: 100px;
 	height: 100%;
 }
+
+.width-transition {
+	-webkit-transition: width 0.5s;
+	transition: width 0.5s;
+}

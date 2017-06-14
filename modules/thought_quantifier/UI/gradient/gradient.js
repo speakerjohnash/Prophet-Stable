@@ -18,7 +18,8 @@
             rightLabel = rateContainer.select(".right-label"),
             opacity = fillBar.attr("data-average") / 100,
             inverseOpacity = 1 - opacity,
-            rangeScale = d3.scaleLinear().domain([10, 100]).range([0, 100]);
+            rangeScale = ("scaleLinear" in d3) ? d3.scaleLinear() : d3.scale.linear(),
+            rangeScale.domain([10, 100]).range([0, 100]);
 
         // Set Default State
         fillBar.style("width", fillBar.attr("data-average") + "%")
@@ -35,12 +36,32 @@
               opacity = trueVote / 100,
               inverseOpacity = 1 - opacity;
 
-          that.select(".full-gradient").style("width", percent + "%");
+          that.select(".full-gradient").classed("width-transition", false).style("width", percent + "%");
           that.select(".percent-label").text(trueVote + "%")
           that.select(".left-label").style("opacity", inverseOpacity)
           that.select(".right-label").style("opacity", opacity)    
 
         })
+
+        // Touch Move
+        rateContainer.on("touchmove", function(d) {
+
+          d3.event.preventDefault();
+          d3.event.stopPropagation();
+
+          var x = d3.touches(this)[0][0],
+              that = d3.select(this),
+              percent = getPercent(x),
+              trueVote = Math.round(rangeScale(percent) * 10) / 10,
+              opacity = trueVote / 100,
+              inverseOpacity = 1 - opacity;
+
+          that.select(".full-gradient").classed("width-transition", false).style("width", percent + "%");
+          that.select(".percent-label").text(trueVote + "%")
+          that.select(".left-label").style("opacity", inverseOpacity)
+          that.select(".right-label").style("opacity", opacity)  
+
+        }) 
 
         // Reset Default
         rateContainer.on("mouseout", function(d) {
@@ -51,7 +72,7 @@
               opacity = fillBar.attr("data-average") / 100,
               inverseOpacity = 1 - opacity;
 
-          that.select(".full-gradient").style("width", width + "%")
+          that.select(".full-gradient").classed("width-transition", true).style("width", width + "%")
           that.select(".percent-label").text(fillBar.attr("data-average") + "%")
           that.select(".left-label").style("opacity", inverseOpacity)
           that.select(".right-label").style("opacity", opacity)
